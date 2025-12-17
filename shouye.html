@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>甜蜜小窝 - 三丽鸥主题首页</title>
+    <style>
+        /* 全局重置与基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", "幼圆", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #FFE6F2 0%, #E6F7FF 100%);
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 三丽鸥核心配色体系 */
+        :root {
+            /* Hello Kitty 专属粉系 */
+            --kitty-primary: #FFC0CB;
+            --kitty-secondary: #E6007E;
+            --kitty-light: #FFE6EF;
+            --kitty-deep: #FF8FA3;
+            --kitty-border: #FFB6C1;
+            
+            /* 玉桂狗 专属蓝系 */
+            --cinnamon-primary: #B8E0F8;
+            --cinnamon-secondary: #4A90E2;
+            --cinnamon-light: #E6F7FF;
+            --cinnamon-deep: #87CEEB;
+            --cinnamon-border: #ADD8E6;
+            
+            /* 通用可爱样式 */
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --shadow-sm: 0 2px 8px rgba(255,192,203,0.2);
+            --shadow-md: 0 5px 15px rgba(255,192,203,0.3);
+            --shadow-lg: 0 8px 25px rgba(255,192,203,0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ========== 新增：导航栏样式 ========== */
+        nav {
+            display: flex;
+            padding: 15px 20px;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: white;
+            border-bottom: 3px solid var(--kitty-primary);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 0; /* 与Banner无缝连接 */
+        }
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-size: 15px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            position: relative;
+            transition: var(--transition);
+        }
+        nav a.active {
+            background: var(--kitty-light);
+            color: var(--kitty-secondary);
+            font-weight: bold;
+            box-shadow: inset 0 0 0 2px var(--kitty-border);
+        }
+        nav a:hover {
+            background: var(--kitty-light);
+            transform: translateY(-2px);
+        }
+        /* 导航栏蝴蝶结装饰 */
+        nav a::after {
+            content: "🎀";
+            font-size: 10px;
+            position: absolute;
+            right: -6px;
+            top: -4px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        nav a:hover::after {
+            opacity: 1;
+            right: -8px;
+        }
+
+        /* 顶部全屏Banner */
+        .hero-banner {
+            width: 100%;
+            height: 60vh;
+            min-height: 400px;
+            background: no-repeat center center;
+            background-size: cover;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 5px solid var(--kitty-primary);
+            margin-top: 0; /* 移除可能的多余边距 */
+        }
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,204,214,0.7), rgba(184,224,248,0.7));
+            z-index: 1;
+        }
+        .hero-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+            padding: 0 20px;
+            width: 100%;
+        }
+        .hero-title {
+            font-size: 40px;
+            color: var(--kitty-secondary);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .hero-title::before, .hero-title::after {
+            content: "🎀";
+            font-size: 35px;
+        }
+        .hero-subtitle {
+            font-size: 18px;
+            color: #666;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 20px;
+            border-radius: var(--radius-md);
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+        .hero-btn {
+            padding: 12px 30px;
+            background: var(--kitty-secondary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hero-btn:hover {
+            background: #C5006C;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* 图片上传按钮（悬浮在Banner右上角） */
+        .upload-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 3;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .upload-btn {
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.9);
+            color: var(--kitty-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: var(--shadow-sm);
+        }
+        .upload-btn:hover {
+            background: var(--kitty-light);
+            transform: translateY(-2px);
+        }
+        #bannerUpload, #momentUpload {
+            display: none;
+        }
+
+        /* 导航卡片区域 */
+        .nav-cards {
+            max-width: 1200px;
+            margin: -50px auto 60px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            position: relative;
+            z-index: 5;
+        }
+        .nav-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            border-top: 6px solid;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: no-repeat center;
+            background-size: cover;
+            border-radius: 50%;
+            opacity: 0.08;
+            z-index: 1;
+        }
+        .nav-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+        /* Kitty粉系卡片 */
+        .card-kitty {
+            border-color: var(--kitty-primary);
+        }
+        .card-kitty .card-icon {
+            color: var(--kitty-secondary);
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+        .card-kitty .card-title {
+            color: var(--kitty-secondary);
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        /* 玉桂狗蓝系卡片 */
+        .card-cinnamon {
+            border-color: var(--cinnamon-primary);
+        }
+        .card-cinnamon .card-icon {
+            color: var(--cinnamon-secondary);
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+        .card-cinnamon .card-title {
+            color: var(--cinnamon-secondary);
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        .card-desc {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .card-link {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            z-index: 2;
+        }
+        .card-kitty .card-link {
+            background: var(--kitty-light);
+            color: var(--kitty-secondary);
+        }
+        .card-kitty .card-link:hover {
+            background: var(--kitty-primary);
+            color: white;
+        }
+        .card-cinnamon .card-link {
+            background: var(--cinnamon-light);
+            color: var(--cinnamon-secondary);
+        }
+        .card-cinnamon .card-link:hover {
+            background: var(--cinnamon-primary);
+            color: white;
+        }
+
+        /* 甜蜜瞬间板块 */
+        .moments-section {
+            max-width: 1200px;
+            margin: 0 auto 80px;
+            padding: 0 20px;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .section-title {
+            font-size: 28px;
+            color: var(--kitty-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .section-title::before {
+            content: "💖";
+            font-size: 25px;
+        }
+        .section-desc {
+            color: #999;
+            font-size: 15px;
+        }
+        .moments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .moment-item {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            aspect-ratio: 1/1;
+            position: relative;
+        }
+        .moment-item:hover {
+            transform: scale(1.03);
+            box-shadow: var(--shadow-md);
+        }
+        .moment-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .moment-item .delete-moment {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #FF6B8B;
+            font-size: 14px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .moment-item:hover .delete-moment {
+            opacity: 1;
+        }
+
+        /* 底部信息栏 */
+        .footer {
+            background: white;
+            padding: 20px 0;
+            text-align: center;
+            border-top: 3px solid var(--kitty-primary);
+            margin-top: 40px;
+        }
+        .footer-text {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .footer-heart {
+            color: var(--kitty-secondary);
+            font-size: 16px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            nav {
+                padding: 12px 15px;
+                gap: 10px;
+            }
+            nav a {
+                font-size: 14px;
+                padding: 6px 12px;
+            }
+            .hero-title {
+                font-size: 30px;
+            }
+            .hero-subtitle {
+                font-size: 16px;
+            }
+            .nav-cards {
+                margin: -30px auto 40px;
+            }
+            .upload-container {
+                right: 10px;
+                top: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            nav {
+                padding: 10px;
+                gap: 8px;
+            }
+            nav a {
+                font-size: 13px;
+                padding: 5px 10px;
+            }
+            .hero-banner {
+                height: 50vh;
+                min-height: 300px;
+            }
+            .hero-title {
+                font-size: 25px;
+            }
+            .hero-title::before, .hero-title::after {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== 新增：顶部导航栏 ========== -->
+    <nav>
+        <a href="shouye.html" class="active">首页</a>
+        <a href="hobbies.html">喜欢与不喜欢</a>
+        <a href="quarrel.html">吵架记录</a>
+        <a href="anniversary.html">纪念日</a>
+        <a href="sweet-moments.html">甜蜜瞬间</a>
+    </nav>
+
+    <!-- 顶部全屏Banner -->
+    <div class="hero-banner" id="heroBanner">
+        <!-- 图片上传按钮 -->
+        <div class="upload-container">
+            <label for="bannerUpload" class="upload-btn">
+                🖼️ 更换背景图
+            </label>
+            <input type="file" id="bannerUpload" accept="image/*">
+
+            <label for="momentUpload" class="upload-btn">
+                📸 添加甜蜜瞬间
+            </label>
+            <input type="file" id="momentUpload" accept="image/*" multiple>
+        </div>
+
+        <!-- Banner内容 -->
+        <div class="hero-content">
+            <h1 class="hero-title">我们的甜蜜小窝</h1>
+            <p class="hero-subtitle">记录属于我们的每一个美好瞬间 💓</p>
+            <button class="hero-btn">
+                🚀 开始探索
+            </button>
+        </div>
+    </div>
+
+    <!-- 导航卡片区域 -->
+    <div class="nav-cards">
+        <!-- 喜欢与不喜欢卡片 -->
+        <div class="nav-card card-kitty">
+            <div class="card-icon">❤️</div>
+            <h3 class="card-title">喜欢与不喜欢</h3>
+            <p class="card-desc">记录彼此的小偏好，更懂对方一点点</p>
+            <a href="hobbies.html" class="card-link">进入查看 →</a>
+        </div>
+
+        <!-- 吵架记录卡片 -->
+        <div class="nav-card card-cinnamon">
+            <div class="card-icon">💢</div>
+            <h3 class="card-title">吵架记录</h3>
+            <p class="card-desc">记录小情绪，更珍惜和好的甜蜜</p>
+            <a href="quarrel.html" class="card-link">进入查看 →</a>
+        </div>
+
+        <!-- 纪念日卡片 -->
+        <div class="nav-card card-kitty">
+            <div class="card-icon">🎂</div>
+            <h3 class="card-title">纪念日</h3>
+            <p class="card-desc">珍藏每一个值得纪念的日子</p>
+            <a href="anniversary.html" class="card-link">进入查看 →</a>
+        </div>
+
+        <!-- 甜蜜瞬间卡片 -->
+        <div class="nav-card card-cinnamon">
+            <div class="card-icon">📸</div>
+            <h3 class="card-title">甜蜜瞬间</h3>
+            <p class="card-desc">定格每一个幸福的美好时刻</p>
+            <a href="sweet-moments.html" class="card-link">进入查看 →</a>
+        </div>
+    </div>
+
+    <!-- 甜蜜瞬间预览板块 -->
+    <div class="moments-section">
+        <div class="section-header">
+            <h2 class="section-title">甜蜜瞬间预览</h2>
+            <p class="section-desc">每一张照片，都是我们的小幸福</p>
+        </div>
+        <div class="moments-grid" id="momentsGrid">
+            <!-- 动态渲染甜蜜瞬间照片 -->
+        </div>
+    </div>
+
+    <!-- 底部信息栏 -->
+    <div class="footer">
+        <p class="footer-text">©  我们的甜蜜小窝 </p>
+        <p class="footer-heart">💖 愿我们永远甜蜜 💖</p>
+    </div>
+
+    <script>
+        // ========== 核心：本地存储工具函数 ==========
+        function saveToStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        function getFromStorage(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // ========== 1. Banner背景图持久化 ==========
+        const heroBanner = document.getElementById('heroBanner');
+        // 页面加载时恢复Banner背景
+        const savedBanner = getFromStorage('sweet_home_banner');
+        if (savedBanner) {
+            heroBanner.style.backgroundImage = `url("${savedBanner}")`;
+        }
+        // 上传Banner并保存
+        document.getElementById('bannerUpload').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imgBase64 = event.target.result;
+                    heroBanner.style.backgroundImage = `url("${imgBase64}")`;
+                    saveToStorage('sweet_home_banner', imgBase64); // 保存到本地
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // ========== 2. 甜蜜瞬间照片持久化 ==========
+        const momentsGrid = document.getElementById('momentsGrid');
+        // 初始化甜蜜瞬间数据（默认占位图 + 本地存储的照片）
+        let momentPhotos = getFromStorage('sweet_moments_photos') || [
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjRkZDMENGIiBzdHJva2Utd2lkdGg9IjMiLz48Y2lyY2xlIGN4PSIxMTAiIGN5PSIxMTAiIHI9IjgwIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjRkZDMENGIiBzdHJva2Utd2lkdGg9IjMiLz48dGV4dCB4PSIxMTAiIHk9IjExMCIgZm9udC1mYW1pbHk9Ik1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iI0U2MDA3RSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPlRodW5kZXIgdG8gZWRpdCB0aGlzIGltYWdlPC90ZXh0Pjwvc3ZnPg==',
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjQjhFMEY4IiBzdHJva2Utd2lkdGg9IjMiLz48Y2lyY2xlIGN4PSIxMTAiIGN5PSIxMTAiIHI9IjgwIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjQjhFMEY4IiBzdHJva2Utd2lkdGg9IjMiLz48dGV4dCB4PSIxMTAiIHk9IjExMCIgZm9udC1mYW1pbHk9Ik1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzRBOTBFMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPlRodW5kZXIgdG8gZWRpdCB0aGlzIGltYWdlPC90ZXh0Pjwvc3ZnPg==',
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjRkZDMENGIiBzdHJva2Utd2lkdGg9IjMiLz48Y2lyY2xlIGN4PSIxMTAiIGN5PSIxMTAiIHI9IjgwIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjRkZDMENGIiBzdHJva2Utd2lkdGg9IjMiLz48dGV4dCB4PSIxMTAiIHk9IjExMCIgZm9udC1mYW1pbHk9Ik1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iI0U2MDA3RSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPlRodW5kZXIgdG8gZWRpdCB0aGlzIGltYWdlPC90ZXh0Pjwvc3ZnPg==',
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjQjhFMEY4IiBzdHJva2Utd2lkdGg9IjMiLz48Y2lyY2xlIGN4PSIxMTAiIGN5PSIxMTAiIHI9IjgwIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjQjhFMEY4IiBzdHJva2Utd2lkdGg9IjMiLz48dGV4dCB4PSIxMTAiIHk9IjExMCIgZm9udC1mYW1pbHk9Ik1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzRBOTBFMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPlRodW5kZXIgdG8gZWRpdCB0aGlzIGltYWdlPC90ZXh0Pjwvc3ZnPg=='
+        ];
+
+        // 渲染甜蜜瞬间照片
+        function renderMoments() {
+            momentsGrid.innerHTML = '';
+            momentPhotos.forEach((photo, index) => {
+                const momentItem = document.createElement('div');
+                momentItem.className = 'moment-item';
+                momentItem.innerHTML = `
+                    <img src="${photo}" alt="甜蜜瞬间${index+1}">
+                    <div class="delete-moment" data-index="${index}">×</div>
+                `;
+                momentsGrid.appendChild(momentItem);
+
+                // 删除照片事件
+                momentItem.querySelector('.delete-moment').addEventListener('click', function() {
+                    const idx = this.dataset.index;
+                    if (confirm('确定要删除这张甜蜜瞬间吗？')) {
+                        momentPhotos.splice(idx, 1);
+                        saveToStorage('sweet_moments_photos', momentPhotos); // 同步保存
+                        renderMoments();
+                    }
+                });
+            });
+        }
+
+        // 页面加载时渲染甜蜜瞬间
+        renderMoments();
+
+        // 上传甜蜜瞬间照片
+        document.getElementById('momentUpload').addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (!files.length) return;
+
+            // 处理每张上传的照片
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imgBase64 = event.target.result;
+                    momentPhotos.push(imgBase64);
+                    saveToStorage('sweet_moments_photos', momentPhotos); // 保存到本地
+                    renderMoments();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // 清空文件选择器（允许重复上传同一张）
+            this.value = '';
+        });
+
+        // ========== 3. 导航卡片装饰图持久化 ==========
+        const cardDecorImages = [
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjRkZDMENGIiBzdHJva2Utd2lkdGg9IjEiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI0MCIgZmlsbD0iI0ZDMENGIi8+PC9zdmc+',
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjQjhFMEY4IiBzdHJva2Utd2lkdGg9IjEiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI0MCIgZmlsbD0iI0I4RTBGOCIvPgo8L3N2Zz4='
+        ];
+        
+        // 给每个导航卡片添加装饰图（固定样式，无需存储）
+        const navCardElements = document.querySelectorAll('.nav-card');
+        navCardElements.forEach((card, index) => {
+            const decorImg = cardDecorImages[index % cardDecorImages.length];
+            const style = document.createElement('style');
+            style.textContent = `
+                .nav-card:nth-child(${index+1})::before {
+                    background-image: url("${decorImg}") !important;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+
+        // ========== 4. 其他交互功能 ==========
+        // 开始探索按钮滚动到导航卡片
+        const heroBtn = document.querySelector('.hero-btn');
+        const navCards = document.querySelector('.nav-cards');
+        heroBtn.addEventListener('click', function() {
+            navCards.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    </script>
+</body>
+</html>
