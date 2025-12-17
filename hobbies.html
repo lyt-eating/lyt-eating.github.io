@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喜欢与不喜欢</title>
+    <style>
+        /* 全局重置与基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", "幼圆", sans-serif; /* 更可爱的字体 */
+        }
+        body {
+            background: linear-gradient(120deg, #FFE6F2 0%, #E6F7FF 100%); /* 粉蓝渐变底 */
+            color: #333;
+            min-height: 100vh;
+            padding-bottom: 80px; /* 底部预留空间 */
+        }
+
+        /* 三丽鸥角色配色体系（标准化） */
+        :root {
+            /* Hello Kitty 专属色 */
+            --kitty-primary: #FFC0CB; /* 浅粉 */
+            --kitty-secondary: #E6007E; /* 美乐蒂玫红 */
+            --kitty-light: #FFE6EF; /* 极浅粉 */
+            --kitty-deep: #FF8FA3; /* 深粉 */
+            --kitty-border: #FFB6C1; /* 边框粉 */
+            
+            /* 玉桂狗 专属色 */
+            --cinnamon-primary: #B8E0F8; /* 浅蓝 */
+            --cinnamon-secondary: #4A90E2; /* 深蓝 */
+            --cinnamon-light: #E6F7FF; /* 极浅蓝 */
+            --cinnamon-deep: #87CEEB; /* 深天蓝 */
+            --cinnamon-border: #ADD8E6; /* 边框蓝 */
+            
+            /* 通用可爱风格 */
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --shadow-sm: 0 2px 8px rgba(255,192,203,0.2);
+            --shadow-md: 0 5px 15px rgba(255,192,203,0.3);
+            --shadow-lg: 0 8px 25px rgba(255,192,203,0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 更顺滑的动画曲线 */
+        }
+
+        /* 导航栏 - 三丽鸥顶栏设计 */
+        nav {
+            display: flex;
+            padding: 15px 20px;
+            gap: 15px;
+            align-items: center;
+            justify-content: center; /* 居中布局更可爱 */
+            flex-wrap: wrap;
+            background: white;
+            border-bottom: 3px solid var(--kitty-primary);
+            box-shadow: var(--shadow-sm);
+            position: sticky; /* 粘性导航 */
+            top: 0;
+            z-index: 100;
+            margin-bottom: 20px;
+        }
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-size: 15px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            position: relative;
+            transition: var(--transition);
+        }
+        nav a.active {
+            background: var(--kitty-light);
+            color: var(--kitty-secondary);
+            font-weight: bold;
+            box-shadow: inset 0 0 0 2px var(--kitty-border);
+        }
+        nav a:hover {
+            background: var(--kitty-light);
+            transform: translateY(-2px);
+        }
+        /* 导航栏蝴蝶结装饰 */
+        nav a::after {
+            content: "🎀";
+            font-size: 10px;
+            position: absolute;
+            right: -6px;
+            top: -4px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        nav a:hover::after {
+            opacity: 1;
+            right: -8px;
+        }
+
+        /* Banner区域 - 角色主题横幅 */
+        .banner {
+            max-width: 1100px;
+            margin: 0 auto 30px;
+            padding: 0 20px;
+        }
+        .banner-inner {
+            height: 180px; /* 移动端更友好的高度 */
+            background: url("https://haowallpaper.com/link/common/file/previewFileImg/16642249197014400") no-repeat center;
+            background-size: cover;
+            border-radius: var(--radius-lg);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            border: 3px solid white;
+        }
+        .banner-inner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,204,214,0.8), rgba(184,224,248,0.8));
+        }
+        .banner-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .banner-content h1 {
+            color: var(--kitty-secondary);
+            font-size: 26px;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .banner-content h1::before, .banner-content h1::after {
+            content: "🎀";
+            font-size: 20px;
+        }
+        .banner-content p {
+            color: #666;
+            font-size: 15px;
+            background: rgba(255,255,255,0.9);
+            padding: 5px 15px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+        }
+
+        /* 主容器 - 优化间距与居中 */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            gap: 30px; /* 板块间距增大，呼吸感更强 */
+        }
+
+        /* 人物板块 - 角色专属卡片设计 */
+        .person-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .person-section:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-3px);
+        }
+        /* Kitty板块（我） */
+        .person1-section {
+            border-top: 8px solid var(--kitty-primary);
+            border-left: 8px solid var(--kitty-primary);
+        }
+        .person1-section::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 200px;
+            height: 200px;
+            background: url("https://gd-hbimg-edge.huabanimg.com/64fbec8b7e5ef7dcde8ff71e82b6cd00a59ca3eb7663e-p19Gaf_fw1200webp?auth_key=1765958400-dd9482f8438f40ceae4a2a412c45396c-0-23fbb5c13a48b09e9e98a3b163546af4") no-repeat center;
+            background-size: cover;
+            border-radius: 50%;
+            opacity: 1;
+            z-index: 1;
+        }
+        .person1-section::after {
+            content: '🐱';
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 60px;
+            opacity: 0.08;
+            z-index: 1;
+        }
+        /* 玉桂狗板块（TA） */
+        .person2-section {
+            border-top: 8px solid var(--cinnamon-primary);
+            border-left: 8px solid var(--cinnamon-primary);
+        }
+        .person2-section::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 200px;
+            height: 200px;
+            background: url("https://www.toopic.cn/public/uploads/small/176102469045176102469022.jpg") no-repeat center;
+            background-size: cover;
+            border-radius: 50%;
+            opacity: 1;
+            z-index: 1;
+        }
+        .person2-section::after {
+            content: '🐶';
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 60px;
+            opacity: 0.08;
+            z-index: 1;
+        }
+
+        /* 板块标题 - 角色专属样式 */
+        .person-title {
+            font-size: 24px;
+            margin: 0 0 25px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 3px dotted; /* 点状边框更可爱 */
+            position: relative;
+            z-index: 2;
+        }
+        .person1-title {
+            border-color: var(--kitty-primary);
+            color: var(--kitty-secondary);
+        }
+        .person1-title::before {
+            content: "🍭";
+            font-size: 28px;
+        }
+        .person2-title {
+            border-color: var(--cinnamon-primary);
+            color: var(--cinnamon-secondary);
+        }
+        .person2-title::before {
+            content: "🍭";
+            font-size: 28px;
+        }
+
+        /* 子板块标题 */
+        .section-title {
+            font-size: 18px;
+            margin: 25px 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--kitty-light);
+            border-radius: var(--radius-sm);
+            width: fit-content;
+            position: relative;
+            z-index: 2;
+        }
+        .person1 .section-title {
+            color: var(--kitty-secondary);
+            background: var(--kitty-light);
+        }
+        .person1 .section-title::before {
+            content: "🥰";
+        }
+        .person1 .dislike-title {
+            background: #FFF0F5;
+            color: #FF6B8B;
+        }
+        .person1 .dislike-title::before {
+            content: "☹️";
+        }
+        
+        .person2 .section-title {
+            color: var(--cinnamon-secondary);
+            background: var(--cinnamon-light);
+        }
+        .person2 .section-title::before {
+            content: "😍";
+        }
+        .person2 .dislike-title {
+            background: #F0F8FF;
+            color: #4682B4;
+        }
+        .person2 .dislike-title::before {
+            content: "😢";
+        }
+
+        /* 按钮组 - 优化布局与样式 */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap; /* 移动端换行 */
+            position: relative;
+            z-index: 2;
+        }
+        .add-btn, .delete-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            box-shadow: var(--shadow-sm);
+        }
+        /* Kitty按钮 */
+        .person1 .add-btn {
+            background: var(--kitty-primary);
+            color: var(--kitty-secondary);
+        }
+        .person1 .add-btn:hover {
+            background: var(--kitty-deep);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .person1 .delete-btn {
+            background: white;
+            color: var(--kitty-secondary);
+            border: 2px solid var(--kitty-light);
+        }
+        .person1 .delete-btn:hover {
+            background: var(--kitty-light);
+            transform: translateY(-2px);
+        }
+        /* 玉桂狗按钮 */
+        .person2 .add-btn {
+            background: var(--cinnamon-primary);
+            color: var(--cinnamon-secondary);
+        }
+        .person2 .add-btn:hover {
+            background: var(--cinnamon-deep);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .person2 .delete-btn {
+            background: white;
+            color: var(--cinnamon-secondary);
+            border: 2px solid var(--cinnamon-light);
+        }
+        .person2 .delete-btn:hover {
+            background: var(--cinnamon-light);
+            transform: translateY(-2px);
+        }
+
+        /* 表单样式 - 优化间距与视觉 */
+        .thing-form {
+            background: var(--kitty-light);
+            border-radius: var(--radius-md);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-sm);
+            display: none;
+            position: relative;
+            z-index: 2;
+            border: 2px solid var(--kitty-border);
+        }
+        .person1 .thing-form {
+            background: var(--kitty-light);
+            border-color: var(--kitty-border);
+        }
+        .person2 .thing-form {
+            background: var(--cinnamon-light);
+            border-color: var(--cinnamon-border);
+        }
+        .form-item {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .form-item label {
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .person1 .form-item label {
+            color: var(--kitty-secondary);
+        }
+        .person2 .form-item label {
+            color: var(--cinnamon-secondary);
+        }
+        .form-item input, .form-item textarea {
+            padding: 12px 15px;
+            border: 2px solid;
+            border-radius: var(--radius-sm);
+            outline: none;
+            font-size: 14px;
+            transition: var(--transition);
+            background: white;
+        }
+        .person1 .form-item input, .person1 .form-item textarea {
+            border-color: var(--kitty-light);
+        }
+        .person1 .form-item input:focus, .person1 .form-item textarea:focus {
+            border-color: var(--kitty-secondary);
+            box-shadow: 0 0 0 3px rgba(230,0,126,0.1);
+        }
+        .person2 .form-item input, .person2 .form-item textarea {
+            border-color: var(--cinnamon-light);
+        }
+        .person2 .form-item input:focus, .person2 .form-item textarea:focus {
+            border-color: var(--cinnamon-secondary);
+            box-shadow: 0 0 0 3px rgba(74,144,226,0.1);
+        }
+        .form-item textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.6;
+        }
+        .submit-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .person1 .submit-btn {
+            background: var(--kitty-secondary);
+            color: white;
+        }
+        .person1 .submit-btn:hover {
+            background: #C5006C;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .person2 .submit-btn {
+            background: var(--cinnamon-secondary);
+            color: white;
+        }
+        .person2 .submit-btn:hover {
+            background: #3A7BC8;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 卡片网格 - 优化响应式布局 */
+        .thing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 更小的最小宽度 */
+            gap: 20px;
+            margin: 20px 0;
+            position: relative;
+            z-index: 2;
+        }
+        /* 卡片样式 - 角色专属 */
+        .like-card, .dislike-card {
+            border-radius: var(--radius-md);
+            padding: 22px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            transition: var(--transition);
+            border: 2px solid;
+        }
+        .like-card:hover, .dislike-card:hover {
+            transform: translateY(-5px) rotate(1deg);
+            box-shadow: var(--shadow-md);
+        }
+        /* Kitty卡片 */
+        .person1 .like-card {
+            background: var(--kitty-light);
+            border-color: var(--kitty-border);
+        }
+        .person1 .dislike-card {
+            background: #FFF0F5;
+            border-color: #FFCCD5;
+            border-left: 6px solid var(--kitty-deep);
+        }
+        /* 玉桂狗卡片 */
+        .person2 .like-card {
+            background: var(--cinnamon-light);
+            border-color: var(--cinnamon-border);
+        }
+        .person2 .dislike-card {
+            background: #F0F8FF;
+            border-color: #D1ECFF;
+            border-left: 6px solid var(--cinnamon-deep);
+        }
+
+        /* 卡片删除按钮 */
+        .card-delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .person1 .card-delete-btn {
+            background: white;
+            color: var(--kitty-secondary);
+            border: 2px solid var(--kitty-light);
+        }
+        .person1 .card-delete-btn:hover {
+            background: var(--kitty-deep);
+            color: white;
+            transform: scale(1.1);
+        }
+        .person2 .card-delete-btn {
+            background: white;
+            color: var(--cinnamon-secondary);
+            border: 2px solid var(--cinnamon-light);
+        }
+        .person2 .card-delete-btn:hover {
+            background: var(--cinnamon-deep);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* 卡片内容 */
+        .thing-card h3 {
+            font-size: 17px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 40px; /* 给删除按钮留空间 */
+        }
+        .person1 .thing-card h3 {
+            color: var(--kitty-secondary);
+        }
+        .person1 .like-card h3::before {
+            content: "🥰";
+        }
+        .person1 .dislike-card h3::before {
+            content: "☹️";
+        }
+        .person2 .thing-card h3 {
+            color: var(--cinnamon-secondary);
+        }
+        .person2 .like-card h3::before {
+            content: "😍";
+        }
+        .person2 .dislike-card h3::before {
+            content: "😢";
+        }
+        .thing-card p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #666;
+            margin-top: 10px;
+        }
+        .thing-card p strong {
+            color: #444;
+        }
+
+        /* 空列表提示 */
+        .empty-tip {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            border-radius: var(--radius-md);
+            margin: 10px 0;
+            border: 3px dashed;
+            position: relative;
+            z-index: 2;
+        }
+        .person1 .empty-tip {
+            border-color: var(--kitty-light);
+        }
+        .person2 .empty-tip {
+            border-color: var(--cinnamon-light);
+        }
+        .empty-tip::before {
+            content: "🐾";
+            font-size: 30px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* 底部样式 */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-top: 3px solid var(--kitty-primary);
+            font-size: 14px;
+            color: var(--kitty-secondary);
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -2px 10px rgba(255,192,203,0.1);
+            z-index: 90;
+        }
+
+        /* 响应式优化 - 移动端适配 */
+        @media (max-width: 768px) {
+            .banner-inner {
+                height: 150px;
+            }
+            .banner-content h1 {
+                font-size: 22px;
+            }
+            .person-section {
+                padding: 20px;
+            }
+            .person-title {
+                font-size: 20px;
+            }
+            .section-title {
+                font-size: 16px;
+            }
+            .add-btn, .delete-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            .thing-grid {
+                grid-template-columns: 1fr; /* 移动端单列 */
+            }
+            .thing-form {
+                padding: 20px;
+            }
+        }
+
+        /* 轻量动画 - 页面加载效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .person-section {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        .person1-section {
+            animation-delay: 0.1s;
+        }
+        .person2-section {
+            animation-delay: 0.2s;
+        }
+        .banner-inner {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav>
+        <a href="shouye.html">首页</a>
+        <a href="hobbies.html" class="active">喜欢与不喜欢</a>
+        <a href="quarrel.html">吵架记录</a>
+        <a href="anniversary.html">纪念日</a>
+        <a href="sweet-moments.html">甜蜜瞬间</a>
+    </nav>
+
+    <!-- Banner -->
+    <div class="banner">
+        <div class="banner-inner">
+            <div class="banner-content">
+                <h1>喜欢与不喜欢</h1>
+                <p>记录彼此的喜好，更懂对方的心意 🎀☁️</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 第一个人（我）的板块 - Hello Kitty粉 -->
+        <div class="person-section person1-section person1">
+            <h2 class="person-title person1-title">eating 的 喜 好</h2>
+
+            <!-- 我喜欢的事物 -->
+            <h3 class="section-title">喜欢的事物</h3>
+            <div class="btn-group">
+                <button class="add-btn" id="addPerson1LikeBtn">
+                    <span>+</span> 添加eating喜欢的事物
+                </button>
+                <button class="delete-btn" id="batchDeletePerson1LikeBtn">
+                    <span>🗑️</span> 批量删除选中项
+                </button>
+            </div>
+            <div class="thing-form" id="person1LikeForm">
+                <h3 class="section-title" style="margin: 0 0 20px 0;">新增eating喜欢的事物</h3>
+                <div class="form-item">
+                    <label for="person1LikeName">事物名称 <span style="color:red">*</span></label>
+                    <input type="text" id="person1LikeName" placeholder="比如：草莓蛋糕、看电影 🎀">
+                </div>
+                <div class="form-item">
+                    <label for="person1LikeReason">喜欢的原因</label>
+                    <textarea id="person1LikeReason" placeholder="说说为什么喜欢呀～"></textarea>
+                </div>
+                <button class="submit-btn" id="submitPerson1LikeBtn">提交</button>
+            </div>
+            <div id="person1LikeList">
+                <div class="empty-tip" id="person1LikeEmptyTip">暂无eating喜欢的事物记录，点击「添加eating喜欢的事物」创建第一条记录吧～</div>
+            </div>
+
+            <!-- eating不喜欢的事物 -->
+            <h3 class="section-title dislike-title">不喜欢的事物</h3>
+            <div class="btn-group">
+                <button class="add-btn" id="addPerson1DislikeBtn">
+                    <span>+</span> 添加eating不喜欢的事物
+                </button>
+                <button class="delete-btn" id="batchDeletePerson1DislikeBtn">
+                    <span>🗑️</span> 批量删除选中项
+                </button>
+            </div>
+            <div class="thing-form" id="person1DislikeForm">
+                <h3 class="section-title dislike-title" style="margin: 0 0 20px 0;">新增eating不喜欢的事物</h3>
+                <div class="form-item">
+                    <label for="person1DislikeName">事物名称 <span style="color:red">*</span></label>
+                    <input type="text" id="person1DislikeName" placeholder="比如：香菜、熬夜 💔">
+                </div>
+                <div class="form-item">
+                    <label for="person1DislikeReason">不喜欢的原因</label>
+                    <textarea id="person1DislikeReason" placeholder="说说为什么不喜欢呀～"></textarea>
+                </div>
+                <button class="submit-btn" id="submitPerson1DislikeBtn">提交</button>
+            </div>
+            <div id="person1DislikeList">
+                <div class="empty-tip" id="person1DislikeEmptyTip">暂无eating不喜欢的事物记录，点击「添加eating不喜欢的事物」创建第一条记录吧～</div>
+            </div>
+        </div>
+
+        <!-- 第二个人（TA）的板块 - 玉桂狗蓝 -->
+        <div class="person-section person2-section person2">
+            <h2 class="person-title person2-title">playyy 的 喜 好</h2>
+
+            <!-- TA喜欢的事物 -->
+            <h3 class="section-title">喜欢的事物</h3>
+            <div class="btn-group">
+                <button class="add-btn" id="addPerson2LikeBtn">
+                    <span>+</span> 添加playyy喜欢的事物
+                </button>
+                <button class="delete-btn" id="batchDeletePerson2LikeBtn">
+                    <span>🗑️</span> 批量删除选中项
+                </button>
+            </div>
+            <div class="thing-form" id="person2LikeForm">
+                <h3 class="section-title" style="margin: 0 0 20px 0;">新增playyy喜欢的事物</h3>
+                <div class="form-item">
+                    <label for="person2LikeName">事物名称 <span style="color:red">*</span></label>
+                    <input type="text" id="person2LikeName" placeholder="比如：打游戏、喝咖啡 ☁️">
+                </div>
+                <div class="form-item">
+                    <label for="person2LikeReason">喜欢的原因</label>
+                    <textarea id="person2LikeReason" placeholder="说说为什么喜欢呀～"></textarea>
+                </div>
+                <button class="submit-btn" id="submitPerson2LikeBtn">提交</button>
+            </div>
+            <div id="person2LikeList">
+                <div class="empty-tip" id="person2LikeEmptyTip">暂无playyy喜欢的事物记录，点击「添加playyy喜欢的事物」创建第一条记录吧～</div>
+            </div>
+
+            <!-- playyy不喜欢的事物 -->
+            <h3 class="section-title dislike-title">不喜欢的事物</h3>
+            <div class="btn-group">
+                <button class="add-btn" id="addPerson2DislikeBtn">
+                    <span>+</span> 添加playyy不喜欢的事物
+                </button>
+                <button class="delete-btn" id="batchDeletePerson2DislikeBtn">
+                    <span>🗑️</span> 批量删除选中项
+                </button>
+            </div>
+            <div class="thing-form" id="person2DislikeForm">
+                <h3 class="section-title dislike-title" style="margin: 0 0 20px 0;">新增playyy不喜欢的事物</h3>
+                <div class="form-item">
+                    <label for="person2DislikeName">事物名称 <span style="color:red">*</span></label>
+                    <input type="text" id="person2DislikeName" placeholder="比如：迟到、吵闹 ❄️">
+                </div>
+                <div class="form-item">
+                    <label for="person2DislikeReason">不喜欢的原因</label>
+                    <textarea id="person2DislikeReason" placeholder="说说为什么不喜欢呀～"></textarea>
+                </div>
+                <button class="submit-btn" id="submitPerson2DislikeBtn">提交</button>
+            </div>
+            <div id="person2DislikeList">
+                <div class="empty-tip" id="person2DislikeEmptyTip">暂无playyy不喜欢的事物记录，点击「添加playyy不喜欢的事物」创建第一条记录吧～</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部 -->
+    <footer>
+        Copyright © 个人页 | 记录生活点滴，沉淀成长感悟 🎀☁️
+    </footer>
+
+    <script>
+        // 全局常量：localStorage存储键名
+        const PERSON1_LIKE_KEY = 'person1LikeThings';
+        const PERSON1_DISLIKE_KEY = 'person1DislikeThings';
+        const PERSON2_LIKE_KEY = 'person2LikeThings';
+        const PERSON2_DISLIKE_KEY = 'person2DislikeThings';
+        
+        // 全局变量：数据列表
+        let person1LikeData = JSON.parse(localStorage.getItem(PERSON1_LIKE_KEY)) || [];
+        let person1DislikeData = JSON.parse(localStorage.getItem(PERSON1_DISLIKE_KEY)) || [];
+        let person2LikeData = JSON.parse(localStorage.getItem(PERSON2_LIKE_KEY)) || [];
+        let person2DislikeData = JSON.parse(localStorage.getItem(PERSON2_DISLIKE_KEY)) || [];
+        
+        // ID计数器
+        let p1LikeIdCounter = person1LikeData.length > 0 ? Math.max(...person1LikeData.map(item => item.id)) + 1 : 1;
+        let p1DislikeIdCounter = person1DislikeData.length > 0 ? Math.max(...person1DislikeData.map(item => item.id)) + 1 : 1;
+        let p2LikeIdCounter = person2LikeData.length > 0 ? Math.max(...person2LikeData.map(item => item.id)) + 1 : 1;
+        let p2DislikeIdCounter = person2DislikeData.length > 0 ? Math.max(...person2DislikeData.map(item => item.id)) + 1 : 1;
+
+        // ========== 元素获取 ==========
+        // 第一个人（我）
+        const addPerson1LikeBtn = document.getElementById('addPerson1LikeBtn');
+        const person1LikeForm = document.getElementById('person1LikeForm');
+        const submitPerson1LikeBtn = document.getElementById('submitPerson1LikeBtn');
+        const person1LikeList = document.getElementById('person1LikeList');
+        const batchDeletePerson1LikeBtn = document.getElementById('batchDeletePerson1LikeBtn');
+        const person1LikeEmptyTip = document.getElementById('person1LikeEmptyTip');
+        
+        const addPerson1DislikeBtn = document.getElementById('addPerson1DislikeBtn');
+        const person1DislikeForm = document.getElementById('person1DislikeForm');
+        const submitPerson1DislikeBtn = document.getElementById('submitPerson1DislikeBtn');
+        const person1DislikeList = document.getElementById('person1DislikeList');
+        const batchDeletePerson1DislikeBtn = document.getElementById('batchDeletePerson1DislikeBtn');
+        const person1DislikeEmptyTip = document.getElementById('person1DislikeEmptyTip');
+
+        // 第二个人（TA）
+        const addPerson2LikeBtn = document.getElementById('addPerson2LikeBtn');
+        const person2LikeForm = document.getElementById('person2LikeForm');
+        const submitPerson2LikeBtn = document.getElementById('submitPerson2LikeBtn');
+        const person2LikeList = document.getElementById('person2LikeList');
+        const batchDeletePerson2LikeBtn = document.getElementById('batchDeletePerson2LikeBtn');
+        const person2LikeEmptyTip = document.getElementById('person2LikeEmptyTip');
+        
+        const addPerson2DislikeBtn = document.getElementById('addPerson2DislikeBtn');
+        const person2DislikeForm = document.getElementById('person2DislikeForm');
+        const submitPerson2DislikeBtn = document.getElementById('submitPerson2DislikeBtn');
+        const person2DislikeList = document.getElementById('person2DislikeList');
+        const batchDeletePerson2DislikeBtn = document.getElementById('batchDeletePerson2DislikeBtn');
+        const person2DislikeEmptyTip = document.getElementById('person2DislikeEmptyTip');
+
+        // 页面加载渲染所有数据
+        renderPerson1LikeList();
+        renderPerson1DislikeList();
+        renderPerson2LikeList();
+        renderPerson2DislikeList();
+
+        // ========== 第一个人（我）- 喜欢的事物 ==========
+        addPerson1LikeBtn.addEventListener('click', () => {
+            // 关闭其他表单
+            [person1DislikeForm, person2LikeForm, person2DislikeForm].forEach(form => form.style.display = 'none');
+            // 切换当前表单
+            person1LikeForm.style.display = person1LikeForm.style.display === 'none' ? 'block' : 'none';
+            // 表单打开时自动聚焦
+            if (person1LikeForm.style.display === 'block') {
+                document.getElementById('person1LikeName').focus();
+            }
+        });
+
+        submitPerson1LikeBtn.addEventListener('click', () => {
+            const name = document.getElementById('person1LikeName').value.trim();
+            const reason = document.getElementById('person1LikeReason').value.trim();
+
+            if (!name) {
+                alert('事物名称为必填项，请补充完整！🎀');
+                return;
+            }
+
+            const newItem = {
+                id: p1LikeIdCounter++,
+                name: name,
+                reason: reason || '暂无描述'
+            };
+
+            person1LikeData.push(newItem);
+            localStorage.setItem(PERSON1_LIKE_KEY, JSON.stringify(person1LikeData));
+            renderPerson1LikeList();
+            // 重置表单
+            document.getElementById('person1LikeName').value = '';
+            document.getElementById('person1LikeReason').value = '';
+            person1LikeForm.style.display = 'none';
+
+            alert('eating喜欢的事物添加成功！🎀');
+        });
+
+        person1LikeList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('card-delete-btn')) {
+                const id = parseInt(e.target.dataset.id);
+                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
+                    person1LikeData = person1LikeData.filter(item => item.id !== id);
+                    localStorage.setItem(PERSON1_LIKE_KEY, JSON.stringify(person1LikeData));
+                    renderPerson1LikeList();
+                }
+            }
+        });
+
+        batchDeletePerson1LikeBtn.addEventListener('click', () => {
+            const checked = document.querySelectorAll('.person1-like-checkbox:checked');
+            if (checked.length === 0) {
+                alert('请先选中要删除的记录！🎀');
+                return;
+            }
+
+            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
+            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
+                person1LikeData = person1LikeData.filter(item => !deleteIds.includes(item.id));
+                localStorage.setItem(PERSON1_LIKE_KEY, JSON.stringify(person1LikeData));
+                renderPerson1LikeList();
+            }
+        });
+
+        function renderPerson1LikeList() {
+            person1LikeList.innerHTML = '';
+            person1LikeList.appendChild(person1LikeEmptyTip);
+
+            if (person1LikeData.length > 0) {
+                person1LikeEmptyTip.style.display = 'none';
+                const grid = document.createElement('div');
+                grid.className = 'thing-grid';
+                person1LikeList.appendChild(grid);
+
+                person1LikeData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'like-card thing-card';
+                    card.innerHTML = `
+                        <h3>
+                            ${item.name}
+                            <input type="checkbox" class="person1-like-checkbox" style="margin-left: 10px;" data-id="${item.id}">
+                        </h3>
+                        <button class="card-delete-btn" data-id="${item.id}">×</button>
+                        <p><strong>喜欢的原因：</strong>${item.reason}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                person1LikeEmptyTip.style.display = 'block';
+            }
+        }
+
+        // ========== 第一个人（我）- 不喜欢的事物 ==========
+        addPerson1DislikeBtn.addEventListener('click', () => {
+            [person1LikeForm, person2LikeForm, person2DislikeForm].forEach(form => form.style.display = 'none');
+            person1DislikeForm.style.display = person1DislikeForm.style.display === 'none' ? 'block' : 'none';
+            if (person1DislikeForm.style.display === 'block') {
+                document.getElementById('person1DislikeName').focus();
+            }
+        });
+
+        submitPerson1DislikeBtn.addEventListener('click', () => {
+            const name = document.getElementById('person1DislikeName').value.trim();
+            const reason = document.getElementById('person1DislikeReason').value.trim();
+
+            if (!name) {
+                alert('事物名称为必填项，请补充完整！💔');
+                return;
+            }
+
+            const newItem = {
+                id: p1DislikeIdCounter++,
+                name: name,
+                reason: reason || '暂无描述'
+            };
+
+            person1DislikeData.push(newItem);
+            localStorage.setItem(PERSON1_DISLIKE_KEY, JSON.stringify(person1DislikeData));
+            renderPerson1DislikeList();
+            document.getElementById('person1DislikeName').value = '';
+            document.getElementById('person1DislikeReason').value = '';
+            person1DislikeForm.style.display = 'none';
+
+            alert('eating不喜欢的事物添加成功！💔');
+        });
+
+        person1DislikeList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('card-delete-btn')) {
+                const id = parseInt(e.target.dataset.id);
+                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
+                    person1DislikeData = person1DislikeData.filter(item => item.id !== id);
+                    localStorage.setItem(PERSON1_DISLIKE_KEY, JSON.stringify(person1DislikeData));
+                    renderPerson1DislikeList();
+                }
+            }
+        });
+
+        batchDeletePerson1DislikeBtn.addEventListener('click', () => {
+            const checked = document.querySelectorAll('.person1-dislike-checkbox:checked');
+            if (checked.length === 0) {
+                alert('请先选中要删除的记录！💔');
+                return;
+            }
+
+            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
+            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
+                person1DislikeData = person1DislikeData.filter(item => !deleteIds.includes(item.id));
+                localStorage.setItem(PERSON1_DISLIKE_KEY, JSON.stringify(person1DislikeData));
+                renderPerson1DislikeList();
+            }
+        });
+
+        function renderPerson1DislikeList() {
+            person1DislikeList.innerHTML = '';
+            person1DislikeList.appendChild(person1DislikeEmptyTip);
+
+            if (person1DislikeData.length > 0) {
+                person1DislikeEmptyTip.style.display = 'none';
+                const grid = document.createElement('div');
+                grid.className = 'thing-grid';
+                person1DislikeList.appendChild(grid);
+
+                person1DislikeData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'dislike-card thing-card';
+                    card.innerHTML = `
+                        <h3>
+                            ${item.name}
+                            <input type="checkbox" class="person1-dislike-checkbox" style="margin-left: 10px;" data-id="${item.id}">
+                        </h3>
+                        <button class="card-delete-btn" data-id="${item.id}">×</button>
+                        <p><strong>不喜欢的原因：</strong>${item.reason}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                person1DislikeEmptyTip.style.display = 'block';
+            }
+        }
+
+        // ========== 第二个人（TA）- 喜欢的事物 ==========
+        addPerson2LikeBtn.addEventListener('click', () => {
+            [person1LikeForm, person1DislikeForm, person2DislikeForm].forEach(form => form.style.display = 'none');
+            person2LikeForm.style.display = person2LikeForm.style.display === 'none' ? 'block' : 'none';
+            if (person2LikeForm.style.display === 'block') {
+                document.getElementById('person2LikeName').focus();
+            }
+        });
+
+        submitPerson2LikeBtn.addEventListener('click', () => {
+            const name = document.getElementById('person2LikeName').value.trim();
+            const reason = document.getElementById('person2LikeReason').value.trim();
+
+            if (!name) {
+                alert('事物名称为必填项，请补充完整！☁️');
+                return;
+            }
+
+            const newItem = {
+                id: p2LikeIdCounter++,
+                name: name,
+                reason: reason || '暂无描述'
+            };
+
+            person2LikeData.push(newItem);
+            localStorage.setItem(PERSON2_LIKE_KEY, JSON.stringify(person2LikeData));
+            renderPerson2LikeList();
+            document.getElementById('person2LikeName').value = '';
+            document.getElementById('person2LikeReason').value = '';
+            person2LikeForm.style.display = 'none';
+
+            alert('playyy喜欢的事物添加成功！☁️');
+        });
+
+        person2LikeList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('card-delete-btn')) {
+                const id = parseInt(e.target.dataset.id);
+                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
+                    person2LikeData = person2LikeData.filter(item => item.id !== id);
+                    localStorage.setItem(PERSON2_LIKE_KEY, JSON.stringify(person2LikeData));
+                    renderPerson2LikeList();
+                }
+            }
+        });
+
+        batchDeletePerson2LikeBtn.addEventListener('click', () => {
+            const checked = document.querySelectorAll('.person2-like-checkbox:checked');
+            if (checked.length === 0) {
+                alert('请先选中要删除的记录！☁️');
+                return;
+            }
+
+            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
+            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
+                person2LikeData = person2LikeData.filter(item => !deleteIds.includes(item.id));
+                localStorage.setItem(PERSON2_LIKE_KEY, JSON.stringify(person2LikeData));
+                renderPerson2LikeList();
+            }
+        });
+
+        function renderPerson2LikeList() {
+            person2LikeList.innerHTML = '';
+            person2LikeList.appendChild(person2LikeEmptyTip);
+
+            if (person2LikeData.length > 0) {
+                person2LikeEmptyTip.style.display = 'none';
+                const grid = document.createElement('div');
+                grid.className = 'thing-grid';
+                person2LikeList.appendChild(grid);
+
+                person2LikeData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'like-card thing-card';
+                    card.innerHTML = `
+                        <h3>
+                            ${item.name}
+                            <input type="checkbox" class="person2-like-checkbox" style="margin-left: 10px;" data-id="${item.id}">
+                        </h3>
+                        <button class="card-delete-btn" data-id="${item.id}">×</button>
+                        <p><strong>喜欢的原因：</strong>${item.reason}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                person2LikeEmptyTip.style.display = 'block';
+            }
+        }
+
+        // ========== 第二个人（TA）- 不喜欢的事物 ==========
+        addPerson2DislikeBtn.addEventListener('click', () => {
+            [person1LikeForm, person1DislikeForm, person2LikeForm].forEach(form => form.style.display = 'none');
+            person2DislikeForm.style.display = person2DislikeForm.style.display === 'none' ? 'block' : 'none';
+            if (person2DislikeForm.style.display === 'block') {
+                document.getElementById('person2DislikeName').focus();
+            }
+        });
+
+        submitPerson2DislikeBtn.addEventListener('click', () => {
+            const name = document.getElementById('person2DislikeName').value.trim();
+            const reason = document.getElementById('person2DislikeReason').value.trim();
+
+            if (!name) {
+                alert('事物名称为必填项，请补充完整！❄️');
+                return;
+            }
+
+            const newItem = {
+                id: p2DislikeIdCounter++,
+                name: name,
+                reason: reason || '暂无描述'
+            };
+
+            person2DislikeData.push(newItem);
+            localStorage.setItem(PERSON2_DISLIKE_KEY, JSON.stringify(person2DislikeData));
+            renderPerson2DislikeList();
+            document.getElementById('person2DislikeName').value = '';
+            document.getElementById('person2DislikeReason').value = '';
+            person2DislikeForm.style.display = 'none';
+
+            alert('playyy不喜欢的事物添加成功！❄️');
+        });
+
+        person2DislikeList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('card-delete-btn')) {
+                const id = parseInt(e.target.dataset.id);
+                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
+                    person2DislikeData = person2DislikeData.filter(item => item.id !== id);
+                    localStorage.setItem(PERSON2_DISLIKE_KEY, JSON.stringify(person2DislikeData));
+                    renderPerson2DislikeList();
+                }
+            }
+        });
+
+        batchDeletePerson2DislikeBtn.addEventListener('click', () => {
+            const checked = document.querySelectorAll('.person2-dislike-checkbox:checked');
+            if (checked.length === 0) {
+                alert('请先选中要删除的记录！❄️');
+                return;
+            }
+
+            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
+            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
+                person2DislikeData = person2DislikeData.filter(item => !deleteIds.includes(item.id));
+                localStorage.setItem(PERSON2_DISLIKE_KEY, JSON.stringify(person2DislikeData));
+                renderPerson2DislikeList();
+            }
+        });
+
+        function renderPerson2DislikeList() {
+            person2DislikeList.innerHTML = '';
+            person2DislikeList.appendChild(person2DislikeEmptyTip);
+
+            if (person2DislikeData.length > 0) {
+                person2DislikeEmptyTip.style.display = 'none';
+                const grid = document.createElement('div');
+                grid.className = 'thing-grid';
+                person2DislikeList.appendChild(grid);
+
+                person2DislikeData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'dislike-card thing-card';
+                    card.innerHTML = `
+                        <h3>
+                            ${item.name}
+                            <input type="checkbox" class="person2-dislike-checkbox" style="margin-left: 10px;" data-id="${item.id}">
+                        </h3>
+                        <button class="card-delete-btn" data-id="${item.id}">×</button>
+                        <p><strong>不喜欢的原因：</strong>${item.reason}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                person2DislikeEmptyTip.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
