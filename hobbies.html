@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>喜欢与不喜欢</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>喜好与不喜欢</title>
+  <!-- 引入LeanCloud SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.13.0/dist/av-min.js"></script>
     <style>
         /* 全局重置与基础样式 */
         * {
@@ -366,7 +368,129 @@
             background: var(--cinnamon-light);
             transform: translateY(-2px);
         }
+/* 卡片容器样式 - 适配三丽鸥风格 */
+.card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid var(--kitty-light);
+    transition: var(--transition);
+}
+/* 卡片hover效果 */
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--kitty-border);
+}
 
+/* 复选框样式优化 */
+.card-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+    accent-color: var(--kitty-secondary); /* 复选框选中色适配Kitty粉 */
+    flex-shrink: 0; /* 防止复选框被压缩 */
+}
+
+/* 卡片内容区域 */
+.card-content {
+    flex: 1; /* 占满剩余宽度 */
+}
+/* 事物名称样式 */
+.card-content h3 {
+    font-size: 17px;
+    margin: 0 0 6px 0;
+    color: var(--kitty-secondary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 给表情和文字留间距 */
+}
+/* 事物原因样式 */
+.card-content p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #666;
+    margin: 0;
+    padding-left: 2px;
+}
+
+/* 优化删除按钮位置和样式 */
+.card-delete-btn {
+    position: static; /* 取消绝对定位，适配flex布局 */
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    flex-shrink: 0;
+    background: var(--kitty-light);
+    color: var(--kitty-secondary);
+    border: 1px solid var(--kitty-border);
+    border-radius: 50%; /* 圆形按钮更可爱 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card-delete-btn:hover {
+    background: var(--kitty-deep);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* ========== 重点修复：playyy板块（person2）玉桂狗样式 ========== */
+/* 确保person2类能正确覆盖基础样式 */
+.person2 {
+    --card-border: var(--cinnamon-light);
+    --card-hover-border: var(--cinnamon-border);
+    --text-color: var(--cinnamon-secondary);
+    --btn-bg: var(--cinnamon-light);
+    --btn-color: var(--cinnamon-secondary);
+    --btn-border: var(--cinnamon-border);
+    --btn-hover-bg: var(--cinnamon-deep);
+}
+.person2 .card {
+    border-color: var(--cinnamon-light) !important; /* 强制覆盖，避免优先级问题 */
+}
+.person2 .card:hover {
+    border-color: var(--cinnamon-border) !important;
+}
+.person2 .card-checkbox {
+    accent-color: var(--cinnamon-secondary) !important;
+}
+.person2 .card-content h3 {
+    color: var(--cinnamon-secondary) !important;
+}
+.person2 .card-delete-btn {
+    background: var(--cinnamon-light) !important;
+    color: var(--cinnamon-secondary) !important;
+    border-color: var(--cinnamon-border) !important;
+}
+.person2 .card-delete-btn:hover {
+    background: var(--cinnamon-deep) !important;
+    color: white !important;
+}
+
+/* 表情样式区分（喜欢/不喜欢） */
+.like-icon {
+    color: #E6007E; /* Kitty粉，喜欢的表情色 */
+    font-size: 18px;
+}
+.dislike-icon {
+    color: #4A90E2; /* 玉桂狗蓝，不喜欢的表情色 */
+    font-size: 18px;
+}
+/* playyy板块的表情颜色适配 */
+.person2 .like-icon {
+    color: #4A90E2 !important;
+}
+.person2 .dislike-icon {
+    color: #FF8FA3 !important;
+}
         /* 表单样式 - 优化间距与视觉 */
         .thing-form {
             background: var(--kitty-light);
@@ -694,537 +818,638 @@
 
     <!-- 主容器 -->
     <div class="container">
-        <!-- 第一个人（我）的板块 - Hello Kitty粉 -->
+        <!-- 第一个人（eating）的板块 - Hello Kitty粉 -->
         <div class="person-section person1-section person1">
             <h2 class="person-title person1-title">eating 的 喜 好</h2>
 
-            <!-- 我喜欢的事物 -->
             <h3 class="section-title">喜欢的事物</h3>
-            <div class="btn-group">
-                <button class="add-btn" id="addPerson1LikeBtn">
-                    <span>+</span> 添加eating喜欢的事物
-                </button>
-                <button class="delete-btn" id="batchDeletePerson1LikeBtn">
-                    <span>🗑️</span> 批量删除选中项
-                </button>
-            </div>
-            <div class="thing-form" id="person1LikeForm">
-                <h3 class="section-title" style="margin: 0 0 20px 0;">新增eating喜欢的事物</h3>
-                <div class="form-item">
-                    <label for="person1LikeName">事物名称 <span style="color:red">*</span></label>
-                    <input type="text" id="person1LikeName" placeholder="比如：草莓蛋糕、看电影 🎀">
-                </div>
-                <div class="form-item">
-                    <label for="person1LikeReason">喜欢的原因</label>
-                    <textarea id="person1LikeReason" placeholder="说说为什么喜欢呀～"></textarea>
-                </div>
-                <button class="submit-btn" id="submitPerson1LikeBtn">提交</button>
-            </div>
-            <div id="person1LikeList">
-                <div class="empty-tip" id="person1LikeEmptyTip">暂无eating喜欢的事物记录，点击「添加eating喜欢的事物」创建第一条记录吧～</div>
-            </div>
-
-            <!-- eating不喜欢的事物 -->
-            <h3 class="section-title dislike-title">不喜欢的事物</h3>
-            <div class="btn-group">
-                <button class="add-btn" id="addPerson1DislikeBtn">
-                    <span>+</span> 添加eating不喜欢的事物
-                </button>
-                <button class="delete-btn" id="batchDeletePerson1DislikeBtn">
-                    <span>🗑️</span> 批量删除选中项
-                </button>
-            </div>
-            <div class="thing-form" id="person1DislikeForm">
-                <h3 class="section-title dislike-title" style="margin: 0 0 20px 0;">新增eating不喜欢的事物</h3>
-                <div class="form-item">
-                    <label for="person1DislikeName">事物名称 <span style="color:red">*</span></label>
-                    <input type="text" id="person1DislikeName" placeholder="比如：香菜、熬夜 💔">
-                </div>
-                <div class="form-item">
-                    <label for="person1DislikeReason">不喜欢的原因</label>
-                    <textarea id="person1DislikeReason" placeholder="说说为什么不喜欢呀～"></textarea>
-                </div>
-                <button class="submit-btn" id="submitPerson1DislikeBtn">提交</button>
-            </div>
-            <div id="person1DislikeList">
-                <div class="empty-tip" id="person1DislikeEmptyTip">暂无eating不喜欢的事物记录，点击「添加eating不喜欢的事物」创建第一条记录吧～</div>
-            </div>
+      <div class="btn-group">
+        <button class="add-btn" id="addPerson1LikeBtn">
+          <span>+</span> 添加eating喜欢的事物
+        </button>
+        <button class="delete-btn" id="batchDeletePerson1LikeBtn">
+          <span>🗑️</span> 批量删除选中项
+        </button>
+      </div>
+      <div class="thing-form" id="person1LikeForm">
+        <h3 class="section-title" style="margin: 0 0 20px 0;">新增eating喜欢的事物</h3>
+        <div class="form-item">
+          <label for="person1LikeName">事物名称 <span style="color:red">*</span></label>
+          <input type="text" id="person1LikeName" placeholder="比如：草莓蛋糕、看电影 ❤️">
         </div>
-
-        <!-- 第二个人（TA）的板块 - 玉桂狗蓝 -->
-        <div class="person-section person2-section person2">
-            <h2 class="person-title person2-title">playyy 的 喜 好</h2>
-
-            <!-- TA喜欢的事物 -->
-            <h3 class="section-title">喜欢的事物</h3>
-            <div class="btn-group">
-                <button class="add-btn" id="addPerson2LikeBtn">
-                    <span>+</span> 添加playyy喜欢的事物
-                </button>
-                <button class="delete-btn" id="batchDeletePerson2LikeBtn">
-                    <span>🗑️</span> 批量删除选中项
-                </button>
-            </div>
-            <div class="thing-form" id="person2LikeForm">
-                <h3 class="section-title" style="margin: 0 0 20px 0;">新增playyy喜欢的事物</h3>
-                <div class="form-item">
-                    <label for="person2LikeName">事物名称 <span style="color:red">*</span></label>
-                    <input type="text" id="person2LikeName" placeholder="比如：打游戏、喝咖啡 ☁️">
-                </div>
-                <div class="form-item">
-                    <label for="person2LikeReason">喜欢的原因</label>
-                    <textarea id="person2LikeReason" placeholder="说说为什么喜欢呀～"></textarea>
-                </div>
-                <button class="submit-btn" id="submitPerson2LikeBtn">提交</button>
-            </div>
-            <div id="person2LikeList">
-                <div class="empty-tip" id="person2LikeEmptyTip">暂无playyy喜欢的事物记录，点击「添加playyy喜欢的事物」创建第一条记录吧～</div>
-            </div>
-
-            <!-- playyy不喜欢的事物 -->
-            <h3 class="section-title dislike-title">不喜欢的事物</h3>
-            <div class="btn-group">
-                <button class="add-btn" id="addPerson2DislikeBtn">
-                    <span>+</span> 添加playyy不喜欢的事物
-                </button>
-                <button class="delete-btn" id="batchDeletePerson2DislikeBtn">
-                    <span>🗑️</span> 批量删除选中项
-                </button>
-            </div>
-            <div class="thing-form" id="person2DislikeForm">
-                <h3 class="section-title dislike-title" style="margin: 0 0 20px 0;">新增playyy不喜欢的事物</h3>
-                <div class="form-item">
-                    <label for="person2DislikeName">事物名称 <span style="color:red">*</span></label>
-                    <input type="text" id="person2DislikeName" placeholder="比如：迟到、吵闹 ❄️">
-                </div>
-                <div class="form-item">
-                    <label for="person2DislikeReason">不喜欢的原因</label>
-                    <textarea id="person2DislikeReason" placeholder="说说为什么不喜欢呀～"></textarea>
-                </div>
-                <button class="submit-btn" id="submitPerson2DislikeBtn">提交</button>
-            </div>
-            <div id="person2DislikeList">
-                <div class="empty-tip" id="person2DislikeEmptyTip">暂无playyy不喜欢的事物记录，点击「添加playyy不喜欢的事物」创建第一条记录吧～</div>
-            </div>
+        <div class="form-item">
+          <label for="person1LikeReason">喜欢的原因</label>
+          <textarea id="person1LikeReason" placeholder="说说为什么喜欢呀～"></textarea>
         </div>
+        <button class="submit-btn" id="submitPerson1LikeBtn">提交</button>
+      </div>
+      <div id="person1LikeList">
+        <div class="empty-tip" id="person1LikeEmptyTip">暂无eating喜欢的事物记录，点击「添加eating喜欢的事物」创建第一条记录吧～</div>
+      </div>
+
+      <!-- 我不喜欢的事物 -->
+      <h3 class="section-title">不喜欢的事物</h3>
+      <div class="btn-group">
+        <button class="add-btn" id="addPerson1DislikeBtn">
+          <span>+</span> 添加eating不喜欢的事物
+        </button>
+        <button class="delete-btn" id="batchDeletePerson1DislikeBtn">
+          <span>🗑️</span> 批量删除选中项
+        </button>
+      </div>
+      <div class="thing-form" id="person1DislikeForm">
+        <h3 class="section-title" style="margin: 0 0 20px 0;">新增eating不喜欢的事物</h3>
+        <div class="form-item">
+          <label for="person1DislikeName">事物名称 <span style="color:red">*</span></label>
+          <input type="text" id="person1DislikeName" placeholder="比如：香菜、熬夜 😫">
+        </div>
+        <div class="form-item">
+          <label for="person1DislikeReason">不喜欢的原因</label>
+          <textarea id="person1DislikeReason" placeholder="说说为什么不喜欢呀～"></textarea>
+        </div>
+        <button class="submit-btn" id="submitPerson1DislikeBtn">提交</button>
+      </div>
+      <div id="person1DislikeList">
+        <div class="empty-tip" id="person1DislikeEmptyTip">暂无eating不喜欢的事物记录，点击「添加eating不喜欢的事物」创建第一条记录吧～</div>
+      </div>
+
+      <!-- 第二个人（playyy）的板块 -->
+      <h2 class="person-title person1-title">playyy 的喜好</h2>
+
+      <!-- playyy喜欢的事物 -->
+      <h3 class="section-title">喜欢的事物</h3>
+      <div class="btn-group">
+        <button class="add-btn" id="addPerson2LikeBtn">
+          <span>+</span> 添加playyy喜欢的事物
+        </button>
+        <button class="delete-btn" id="batchDeletePerson2LikeBtn">
+          <span>🗑️</span> 批量删除选中项
+        </button>
+      </div>
+      <div class="thing-form" id="person2LikeForm">
+        <h3 class="section-title" style="margin: 0 0 20px 0;">新增playyy喜欢的事物</h3>
+        <div class="form-item">
+          <label for="person2LikeName">事物名称 <span style="color:red">*</span></label>
+          <input type="text" id="person2LikeName" placeholder="比如：游戏、喝咖啡 ☕">
+        </div>
+        <div class="form-item">
+          <label for="person2LikeReason">喜欢的原因</label>
+          <textarea id="person2LikeReason" placeholder="说说为什么喜欢呀～"></textarea>
+        </div>
+        <button class="submit-btn" id="submitPerson2LikeBtn">提交</button>
+      </div>
+      <div id="person2LikeList">
+        <div class="empty-tip" id="person2LikeEmptyTip">暂无playyy喜欢的事物记录，点击「添加playyy喜欢的事物」创建第一条记录吧～</div>
+      </div>
+
+      <!-- playyy不喜欢的事物 -->
+      <h3 class="section-title">不喜欢的事物</h3>
+      <div class="btn-group">
+        <button class="add-btn" id="addPerson2DislikeBtn">
+          <span>+</span> 添加playyy不喜欢的事物
+        </button>
+        <button class="delete-btn" id="batchDeletePerson2DislikeBtn">
+          <span>🗑️</span> 批量删除选中项
+        </button>
+      </div>
+      <div class="thing-form" id="person2DislikeForm">
+        <h3 class="section-title" style="margin: 0 0 20px 0;">新增playyy不喜欢的事物</h3>
+        <div class="form-item">
+          <label for="person2DislikeName">事物名称 <span style="color:red">*</span></label>
+          <input type="text" id="person2DislikeName" placeholder="比如：吵闹、吃辣 🌶️">
+        </div>
+        <div class="form-item">
+          <label for="person2DislikeReason">不喜欢的原因</label>
+          <textarea id="person2DislikeReason" placeholder="说说为什么不喜欢呀～"></textarea>
+        </div>
+        <button class="submit-btn" id="submitPerson2DislikeBtn">提交</button>
+      </div>
+      <div id="person2DislikeList">
+        <div class="empty-tip" id="person2DislikeEmptyTip">暂无playyy不喜欢的事物记录，点击「添加playyy不喜欢的事物」创建第一条记录吧～</div>
+      </div>
     </div>
+  </div>
 
-    <!-- 底部 -->
-    <footer>
-        Copyright © 个人页 | 记录生活点滴，沉淀成长感悟 🎀☁️
-    </footer>
+  <script>
+    // ==================== 1. LeanCloud 初始化（替换为你的凭证） ====================
+    AV.init({
+      appId: "kxZrkCIhQd1pIG6msvlJKq1t-gzGzoHsz",       // 替换成自己的AppID
+      appKey: "SeEl1FGOeyZ1prvbwPOWakUU",     // 替换成自己的AppKey
+      serverURL: "https://kxzrkcih.lc-cn-n1-shared.com" // 替换成自己的serverURL
+    });
+    const Hobby = AV.Object.extend('Hobby'); // 定义数据模型
 
-    <script>
-        // 全局常量：localStorage存储键名
-        const PERSON1_LIKE_KEY = 'person1LikeThings';
-        const PERSON1_DISLIKE_KEY = 'person1DislikeThings';
-        const PERSON2_LIKE_KEY = 'person2LikeThings';
-        const PERSON2_DISLIKE_KEY = 'person2DislikeThings';
-        
-        // 全局变量：数据列表
-        let person1LikeData = JSON.parse(localStorage.getItem(PERSON1_LIKE_KEY)) || [];
-        let person1DislikeData = JSON.parse(localStorage.getItem(PERSON1_DISLIKE_KEY)) || [];
-        let person2LikeData = JSON.parse(localStorage.getItem(PERSON2_LIKE_KEY)) || [];
-        let person2DislikeData = JSON.parse(localStorage.getItem(PERSON2_DISLIKE_KEY)) || [];
-        
-        // ID计数器
-        let p1LikeIdCounter = person1LikeData.length > 0 ? Math.max(...person1LikeData.map(item => item.id)) + 1 : 1;
-        let p1DislikeIdCounter = person1DislikeData.length > 0 ? Math.max(...person1DislikeData.map(item => item.id)) + 1 : 1;
-        let p2LikeIdCounter = person2LikeData.length > 0 ? Math.max(...person2LikeData.map(item => item.id)) + 1 : 1;
-        let p2DislikeIdCounter = person2DislikeData.length > 0 ? Math.max(...person2DislikeData.map(item => item.id)) + 1 : 1;
+    // ==================== 2. 全局数据 ====================
+    let person1LikeData = [];    // eating喜欢的事物
+    let person1DislikeData = []; // eating不喜欢的事物
+    let person2LikeData = [];    // playyy喜欢的事物
+    let person2DislikeData = []; //playyy不喜欢的事物
 
-        // ========== 元素获取 ==========
-        // 第一个人（我）
-        const addPerson1LikeBtn = document.getElementById('addPerson1LikeBtn');
-        const person1LikeForm = document.getElementById('person1LikeForm');
-        const submitPerson1LikeBtn = document.getElementById('submitPerson1LikeBtn');
-        const person1LikeList = document.getElementById('person1LikeList');
-        const batchDeletePerson1LikeBtn = document.getElementById('batchDeletePerson1LikeBtn');
-        const person1LikeEmptyTip = document.getElementById('person1LikeEmptyTip');
-        
-        const addPerson1DislikeBtn = document.getElementById('addPerson1DislikeBtn');
-        const person1DislikeForm = document.getElementById('person1DislikeForm');
-        const submitPerson1DislikeBtn = document.getElementById('submitPerson1DislikeBtn');
-        const person1DislikeList = document.getElementById('person1DislikeList');
-        const batchDeletePerson1DislikeBtn = document.getElementById('batchDeletePerson1DislikeBtn');
-        const person1DislikeEmptyTip = document.getElementById('person1DislikeEmptyTip');
+    // ==================== 3. 从云端加载数据 ====================
+    function initHobbyData() {
+      const query = new AV.Query(Hobby);
+      query.find().then(results => {
+        // 分类数据（严格匹配你页面的业务逻辑）
+        person1LikeData = results.filter(item => item.get('type') === 'person1Like').map(item => ({
+          id: item.id,
+          name: item.get('name'),
+          reason: item.get('reason')
+        }));
+        person1DislikeData = results.filter(item => item.get('type') === 'person1Dislike').map(item => ({
+          id: item.id,
+          name: item.get('name'),
+          reason: item.get('reason')
+        }));
+        person2LikeData = results.filter(item => item.get('type') === 'person2Like').map(item => ({
+          id: item.id,
+          name: item.get('name'),
+          reason: item.get('reason')
+        }));
+        person2DislikeData = results.filter(item => item.get('type') === 'person2Dislike').map(item => ({
+          id: item.id,
+          name: item.get('name'),
+          reason: item.get('reason')
+        }));
 
-        // 第二个人（TA）
-        const addPerson2LikeBtn = document.getElementById('addPerson2LikeBtn');
-        const person2LikeForm = document.getElementById('person2LikeForm');
-        const submitPerson2LikeBtn = document.getElementById('submitPerson2LikeBtn');
-        const person2LikeList = document.getElementById('person2LikeList');
-        const batchDeletePerson2LikeBtn = document.getElementById('batchDeletePerson2LikeBtn');
-        const person2LikeEmptyTip = document.getElementById('person2LikeEmptyTip');
-        
-        const addPerson2DislikeBtn = document.getElementById('addPerson2DislikeBtn');
-        const person2DislikeForm = document.getElementById('person2DislikeForm');
-        const submitPerson2DislikeBtn = document.getElementById('submitPerson2DislikeBtn');
-        const person2DislikeList = document.getElementById('person2DislikeList');
-        const batchDeletePerson2DislikeBtn = document.getElementById('batchDeletePerson2DislikeBtn');
-        const person2DislikeEmptyTip = document.getElementById('person2DislikeEmptyTip');
-
-        // 页面加载渲染所有数据
+        // 渲染所有列表
         renderPerson1LikeList();
         renderPerson1DislikeList();
         renderPerson2LikeList();
         renderPerson2DislikeList();
+      }).catch(error => {
+        console.error('加载数据失败：', error);
+        alert('数据加载失败，请刷新重试～');
+      });
+    }
 
-        // ========== 第一个人（我）- 喜欢的事物 ==========
-        addPerson1LikeBtn.addEventListener('click', () => {
-            // 关闭其他表单
-            [person1DislikeForm, person2LikeForm, person2DislikeForm].forEach(form => form.style.display = 'none');
-            // 切换当前表单
-            person1LikeForm.style.display = person1LikeForm.style.display === 'none' ? 'block' : 'none';
-            // 表单打开时自动聚焦
-            if (person1LikeForm.style.display === 'block') {
-                document.getElementById('person1LikeName').focus();
-            }
+    // ==================== 4. 元素获取（严格匹配你HTML的id） ====================
+    // eating喜欢的事物
+    const addPerson1LikeBtn = document.getElementById('addPerson1LikeBtn');
+    const person1LikeForm = document.getElementById('person1LikeForm');
+    const submitPerson1LikeBtn = document.getElementById('submitPerson1LikeBtn');
+    const person1LikeList = document.getElementById('person1LikeList');
+    const batchDeletePerson1LikeBtn = document.getElementById('batchDeletePerson1LikeBtn');
+    const person1LikeEmptyTip = document.getElementById('person1LikeEmptyTip');
+
+    // eating不喜欢的事物
+    const addPerson1DislikeBtn = document.getElementById('addPerson1DislikeBtn');
+    const person1DislikeForm = document.getElementById('person1DislikeForm');
+    const submitPerson1DislikeBtn = document.getElementById('submitPerson1DislikeBtn');
+    const person1DislikeList = document.getElementById('person1DislikeList');
+    const batchDeletePerson1DislikeBtn = document.getElementById('batchDeletePerson1DislikeBtn');
+    const person1DislikeEmptyTip = document.getElementById('person1DislikeEmptyTip');
+
+    // playyy喜欢的事物
+    const addPerson2LikeBtn = document.getElementById('addPerson2LikeBtn');
+    const person2LikeForm = document.getElementById('person2LikeForm');
+    const submitPerson2LikeBtn = document.getElementById('submitPerson2LikeBtn');
+    const person2LikeList = document.getElementById('person2LikeList');
+    const batchDeletePerson2LikeBtn = document.getElementById('batchDeletePerson2LikeBtn');
+    const person2LikeEmptyTip = document.getElementById('person2LikeEmptyTip');
+
+    // playyy不喜欢的事物
+    const addPerson2DislikeBtn = document.getElementById('addPerson2DislikeBtn');
+    const person2DislikeForm = document.getElementById('person2DislikeForm');
+    const submitPerson2DislikeBtn = document.getElementById('submitPerson2DislikeBtn');
+    const person2DislikeList = document.getElementById('person2DislikeList');
+    const batchDeletePerson2DislikeBtn = document.getElementById('batchDeletePerson2DislikeBtn');
+    const person2DislikeEmptyTip = document.getElementById('person2DislikeEmptyTip');
+
+    // ==================== 5. 渲染函数（适配你的HTML结构） ====================
+    // 渲染eating喜欢的事物
+    function renderPerson1LikeList() {
+      if (person1LikeData.length === 0) {
+        person1LikeEmptyTip.style.display = 'block';
+        person1LikeList.innerHTML = `<div class="empty-tip" id="person1LikeEmptyTip">暂无eating喜欢的事物记录，点击「添加eating喜欢的事物」创建第一条记录吧～</div>`;
+        return;
+      }
+      person1LikeEmptyTip.style.display = 'none';
+      person1LikeList.innerHTML = person1LikeData.map(item => `
+        <div class="card">
+          <input type="checkbox" class="card-checkbox" data-id="${item.id}">
+          <div class="card-content">
+            <h3>${item.name}</h3>
+            <p>${item.reason || '暂无描述'}</p>
+          </div>
+          <button class="card-delete-btn" data-id="${item.id}">删除</button>
+        </div>
+      `).join('');
+    }
+
+    // 渲染eating不喜欢的事物
+    function renderPerson1DislikeList() {
+      if (person1DislikeData.length === 0) {
+        person1DislikeEmptyTip.style.display = 'block';
+        person1DislikeList.innerHTML = `<div class="empty-tip" id="person1DislikeEmptyTip">暂无eating不喜欢的事物记录，点击「添加eating不喜欢的事物」创建第一条记录吧～</div>`;
+        return;
+      }
+      person1DislikeEmptyTip.style.display = 'none';
+      person1DislikeList.innerHTML = person1DislikeData.map(item => `
+        <div class="card">
+          <input type="checkbox" class="card-checkbox" data-id="${item.id}">
+          <div class="card-content">
+            <h3>${item.name}</h3>
+            <p>${item.reason || '暂无描述'}</p>
+          </div>
+          <button class="card-delete-btn" data-id="${item.id}">删除</button>
+        </div>
+      `).join('');
+    }
+
+    // 渲染playyy喜欢的事物
+    function renderPerson2LikeList() {
+      if (person2LikeData.length === 0) {
+        person2LikeEmptyTip.style.display = 'block';
+        person2LikeList.innerHTML = `<div class="empty-tip" id="person2LikeEmptyTip">暂无playyy喜欢的事物记录，点击「添加playyy喜欢的事物」创建第一条记录吧～</div>`;
+        return;
+      }
+      person2LikeEmptyTip.style.display = 'none';
+      person2LikeList.innerHTML = person2LikeData.map(item => `
+        <div class="card">
+          <input type="checkbox" class="card-checkbox" data-id="${item.id}">
+          <div class="card-content">
+            <h3>${item.name}</h3>
+            <p>${item.reason || '暂无描述'}</p>
+          </div>
+          <button class="card-delete-btn" data-id="${item.id}">删除</button>
+        </div>
+      `).join('');
+    }
+
+    // 渲染playyy不喜欢的事物
+    function renderPerson2DislikeList() {
+      if (person2DislikeData.length === 0) {
+        person2DislikeEmptyTip.style.display = 'block';
+        person2DislikeList.innerHTML = `<div class="empty-tip" id="person2DislikeEmptyTip">暂无playyy不喜欢的事物记录，点击「添加playyy不喜欢的事物」创建第一条记录吧～</div>`;
+        return;
+      }
+      person2DislikeEmptyTip.style.display = 'none';
+      person2DislikeList.innerHTML = person2DislikeData.map(item => `
+        <div class="card">
+          <input type="checkbox" class="card-checkbox" data-id="${item.id}">
+          <div class="card-content">
+            <h3>${item.name}</h3>
+            <p>${item.reason || '暂无描述'}</p>
+          </div>
+          <button class="card-delete-btn" data-id="${item.id}">删除</button>
+        </div>
+      `).join('');
+    }
+
+    // ==================== 6. 表单显示/隐藏逻辑（适配你的按钮文案） ====================
+    // eating喜欢的事物 - 显示表单
+    addPerson1LikeBtn.addEventListener('click', () => {
+      // 关闭其他所有表单
+      person1DislikeForm.style.display = 'none';
+      person2LikeForm.style.display = 'none';
+      person2DislikeForm.style.display = 'none';
+      // 显示当前表单
+      person1LikeForm.style.display = 'block';
+      document.getElementById('person1LikeName').focus();
+    });
+
+    // eating不喜欢的事物 - 显示表单
+    addPerson1DislikeBtn.addEventListener('click', () => {
+      person1LikeForm.style.display = 'none';
+      person2LikeForm.style.display = 'none';
+      person2DislikeForm.style.display = 'none';
+      person1DislikeForm.style.display = 'block';
+      document.getElementById('person1DislikeName').focus();
+    });
+
+    // playyy喜欢的事物 - 显示表单
+    addPerson2LikeBtn.addEventListener('click', () => {
+      person1LikeForm.style.display = 'none';
+      person1DislikeForm.style.display = 'none';
+      person2DislikeForm.style.display = 'none';
+      person2LikeForm.style.display = 'block';
+      document.getElementById('person2LikeName').focus();
+    });
+
+    // playyy不喜欢的事物 - 显示表单
+    addPerson2DislikeBtn.addEventListener('click', () => {
+      person1LikeForm.style.display = 'none';
+      person1DislikeForm.style.display = 'none';
+      person2LikeForm.style.display = 'none';
+      person2DislikeForm.style.display = 'block';
+      document.getElementById('person2DislikeName').focus();
+    });
+
+    // ==================== 7. 添加数据逻辑（适配你的文案） ====================
+    // eating喜欢的事物 - 提交
+    submitPerson1LikeBtn.addEventListener('click', () => {
+      const name = document.getElementById('person1LikeName').value.trim();
+      const reason = document.getElementById('person1LikeReason').value.trim();
+
+      if (!name) {
+        alert('事物名称为必填项，请补充完整！🎀');
+        return;
+      }
+
+      const hobby = new Hobby();
+      hobby.set('type', 'person1Like');
+      hobby.set('name', name);
+      hobby.set('reason', reason || '暂无描述');
+
+      hobby.save().then(savedHobby => {
+        person1LikeData.push({
+          id: savedHobby.id,
+          name: name,
+          reason: reason || '暂无描述'
         });
+        renderPerson1LikeList();
+        // 重置表单
+        document.getElementById('person1LikeName').value = '';
+        document.getElementById('person1LikeReason').value = '';
+        person1LikeForm.style.display = 'none';
+        alert('eating喜欢的事物添加成功！🎀');
+      }).catch(error => {
+        console.error('保存失败：', error);
+        alert('添加失败，请重试～');
+      });
+    });
 
-        submitPerson1LikeBtn.addEventListener('click', () => {
-            const name = document.getElementById('person1LikeName').value.trim();
-            const reason = document.getElementById('person1LikeReason').value.trim();
+    // eating不喜欢的事物 - 提交
+    submitPerson1DislikeBtn.addEventListener('click', () => {
+      const name = document.getElementById('person1DislikeName').value.trim();
+      const reason = document.getElementById('person1DislikeReason').value.trim();
 
-            if (!name) {
-                alert('事物名称为必填项，请补充完整！🎀');
-                return;
-            }
+      if (!name) {
+        alert('事物名称为必填项，请补充完整！🎀');
+        return;
+      }
 
-            const newItem = {
-                id: p1LikeIdCounter++,
-                name: name,
-                reason: reason || '暂无描述'
-            };
+      const hobby = new Hobby();
+      hobby.set('type', 'person1Dislike');
+      hobby.set('name', name);
+      hobby.set('reason', reason || '暂无描述');
 
-            person1LikeData.push(newItem);
-            localStorage.setItem(PERSON1_LIKE_KEY, JSON.stringify(person1LikeData));
+      hobby.save().then(savedHobby => {
+        person1DislikeData.push({
+          id: savedHobby.id,
+          name: name,
+          reason: reason || '暂无描述'
+        });
+        renderPerson1DislikeList();
+        document.getElementById('person1DislikeName').value = '';
+        document.getElementById('person1DislikeReason').value = '';
+        person1DislikeForm.style.display = 'none';
+        alert('eating不喜欢的事物添加成功！🎀');
+      }).catch(error => {
+        console.error('保存失败：', error);
+        alert('添加失败，请重试～');
+      });
+    });
+
+    // playyy喜欢的事物 - 提交
+    submitPerson2LikeBtn.addEventListener('click', () => {
+      const name = document.getElementById('person2LikeName').value.trim();
+      const reason = document.getElementById('person2LikeReason').value.trim();
+
+      if (!name) {
+        alert('事物名称为必填项，请补充完整！🎀');
+        return;
+      }
+
+      const hobby = new Hobby();
+      hobby.set('type', 'person2Like');
+      hobby.set('name', name);
+      hobby.set('reason', reason || '暂无描述');
+
+      hobby.save().then(savedHobby => {
+        person2LikeData.push({
+          id: savedHobby.id,
+          name: name,
+          reason: reason || '暂无描述'
+        });
+        renderPerson2LikeList();
+        document.getElementById('person2LikeName').value = '';
+        document.getElementById('person2LikeReason').value = '';
+        person2LikeForm.style.display = 'none';
+        alert('playyy喜欢的事物添加成功！🎀');
+      }).catch(error => {
+        console.error('保存失败：', error);
+        alert('添加失败，请重试～');
+      });
+    });
+
+    // playyy不喜欢的事物 - 提交
+    submitPerson2DislikeBtn.addEventListener('click', () => {
+      const name = document.getElementById('person2DislikeName').value.trim();
+      const reason = document.getElementById('person2DislikeReason').value.trim();
+
+      if (!name) {
+        alert('事物名称为必填项，请补充完整！🎀');
+        return;
+      }
+
+      const hobby = new Hobby();
+      hobby.set('type', 'person2Dislike');
+      hobby.set('name', name);
+      hobby.set('reason', reason || '暂无描述');
+
+      hobby.save().then(savedHobby => {
+        person2DislikeData.push({
+          id: savedHobby.id,
+          name: name,
+          reason: reason || '暂无描述'
+        });
+        renderPerson2DislikeList();
+        document.getElementById('person2DislikeName').value = '';
+        document.getElementById('person2DislikeReason').value = '';
+        person2DislikeForm.style.display = 'none';
+        alert('playyy不喜欢的事物添加成功！🎀');
+      }).catch(error => {
+        console.error('保存失败：', error);
+        alert('添加失败，请重试～');
+      });
+    });
+
+    // ==================== 8. 单个删除逻辑 ====================
+    // eating喜欢的事物 - 单个删除
+    person1LikeList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('card-delete-btn')) {
+        const id = e.target.dataset.id;
+        if (confirm('确定要删除这条记录吗？')) {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          hobby.destroy().then(() => {
+            person1LikeData = person1LikeData.filter(item => item.id !== id);
             renderPerson1LikeList();
-            // 重置表单
-            document.getElementById('person1LikeName').value = '';
-            document.getElementById('person1LikeReason').value = '';
-            person1LikeForm.style.display = 'none';
-
-            alert('eating喜欢的事物添加成功！🎀');
-        });
-
-        person1LikeList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('card-delete-btn')) {
-                const id = parseInt(e.target.dataset.id);
-                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
-                    person1LikeData = person1LikeData.filter(item => item.id !== id);
-                    localStorage.setItem(PERSON1_LIKE_KEY, JSON.stringify(person1LikeData));
-                    renderPerson1LikeList();
-                }
-            }
-        });
-
-        batchDeletePerson1LikeBtn.addEventListener('click', () => {
-            const checked = document.querySelectorAll('.person1-like-checkbox:checked');
-            if (checked.length === 0) {
-                alert('请先选中要删除的记录！🎀');
-                return;
-            }
-
-            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
-            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
-                person1LikeData = person1LikeData.filter(item => !deleteIds.includes(item.id));
-                localStorage.setItem(PERSON1_LIKE_KEY, JSON.stringify(person1LikeData));
-                renderPerson1LikeList();
-            }
-        });
-
-        function renderPerson1LikeList() {
-            person1LikeList.innerHTML = '';
-            person1LikeList.appendChild(person1LikeEmptyTip);
-
-            if (person1LikeData.length > 0) {
-                person1LikeEmptyTip.style.display = 'none';
-                const grid = document.createElement('div');
-                grid.className = 'thing-grid';
-                person1LikeList.appendChild(grid);
-
-                person1LikeData.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'like-card thing-card';
-                    card.innerHTML = `
-                        <h3>
-                            ${item.name}
-                            <input type="checkbox" class="person1-like-checkbox" style="margin-left: 10px;" data-id="${item.id}">
-                        </h3>
-                        <button class="card-delete-btn" data-id="${item.id}">×</button>
-                        <p><strong>喜欢的原因：</strong>${item.reason}</p>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else {
-                person1LikeEmptyTip.style.display = 'block';
-            }
+          }).catch(error => {
+            console.error('删除失败：', error);
+            alert('删除失败，请重试～');
+          });
         }
+      }
+    });
 
-        // ========== 第一个人（我）- 不喜欢的事物 ==========
-        addPerson1DislikeBtn.addEventListener('click', () => {
-            [person1LikeForm, person2LikeForm, person2DislikeForm].forEach(form => form.style.display = 'none');
-            person1DislikeForm.style.display = person1DislikeForm.style.display === 'none' ? 'block' : 'none';
-            if (person1DislikeForm.style.display === 'block') {
-                document.getElementById('person1DislikeName').focus();
-            }
-        });
-
-        submitPerson1DislikeBtn.addEventListener('click', () => {
-            const name = document.getElementById('person1DislikeName').value.trim();
-            const reason = document.getElementById('person1DislikeReason').value.trim();
-
-            if (!name) {
-                alert('事物名称为必填项，请补充完整！💔');
-                return;
-            }
-
-            const newItem = {
-                id: p1DislikeIdCounter++,
-                name: name,
-                reason: reason || '暂无描述'
-            };
-
-            person1DislikeData.push(newItem);
-            localStorage.setItem(PERSON1_DISLIKE_KEY, JSON.stringify(person1DislikeData));
+    // eating不喜欢的事物 - 单个删除
+    person1DislikeList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('card-delete-btn')) {
+        const id = e.target.dataset.id;
+        if (confirm('确定要删除这条记录吗？')) {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          hobby.destroy().then(() => {
+            person1DislikeData = person1DislikeData.filter(item => item.id !== id);
             renderPerson1DislikeList();
-            document.getElementById('person1DislikeName').value = '';
-            document.getElementById('person1DislikeReason').value = '';
-            person1DislikeForm.style.display = 'none';
-
-            alert('eating不喜欢的事物添加成功！💔');
-        });
-
-        person1DislikeList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('card-delete-btn')) {
-                const id = parseInt(e.target.dataset.id);
-                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
-                    person1DislikeData = person1DislikeData.filter(item => item.id !== id);
-                    localStorage.setItem(PERSON1_DISLIKE_KEY, JSON.stringify(person1DislikeData));
-                    renderPerson1DislikeList();
-                }
-            }
-        });
-
-        batchDeletePerson1DislikeBtn.addEventListener('click', () => {
-            const checked = document.querySelectorAll('.person1-dislike-checkbox:checked');
-            if (checked.length === 0) {
-                alert('请先选中要删除的记录！💔');
-                return;
-            }
-
-            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
-            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
-                person1DislikeData = person1DislikeData.filter(item => !deleteIds.includes(item.id));
-                localStorage.setItem(PERSON1_DISLIKE_KEY, JSON.stringify(person1DislikeData));
-                renderPerson1DislikeList();
-            }
-        });
-
-        function renderPerson1DislikeList() {
-            person1DislikeList.innerHTML = '';
-            person1DislikeList.appendChild(person1DislikeEmptyTip);
-
-            if (person1DislikeData.length > 0) {
-                person1DislikeEmptyTip.style.display = 'none';
-                const grid = document.createElement('div');
-                grid.className = 'thing-grid';
-                person1DislikeList.appendChild(grid);
-
-                person1DislikeData.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'dislike-card thing-card';
-                    card.innerHTML = `
-                        <h3>
-                            ${item.name}
-                            <input type="checkbox" class="person1-dislike-checkbox" style="margin-left: 10px;" data-id="${item.id}">
-                        </h3>
-                        <button class="card-delete-btn" data-id="${item.id}">×</button>
-                        <p><strong>不喜欢的原因：</strong>${item.reason}</p>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else {
-                person1DislikeEmptyTip.style.display = 'block';
-            }
+          }).catch(error => {
+            console.error('删除失败：', error);
+            alert('删除失败，请重试～');
+          });
         }
+      }
+    });
 
-        // ========== 第二个人（TA）- 喜欢的事物 ==========
-        addPerson2LikeBtn.addEventListener('click', () => {
-            [person1LikeForm, person1DislikeForm, person2DislikeForm].forEach(form => form.style.display = 'none');
-            person2LikeForm.style.display = person2LikeForm.style.display === 'none' ? 'block' : 'none';
-            if (person2LikeForm.style.display === 'block') {
-                document.getElementById('person2LikeName').focus();
-            }
-        });
-
-        submitPerson2LikeBtn.addEventListener('click', () => {
-            const name = document.getElementById('person2LikeName').value.trim();
-            const reason = document.getElementById('person2LikeReason').value.trim();
-
-            if (!name) {
-                alert('事物名称为必填项，请补充完整！☁️');
-                return;
-            }
-
-            const newItem = {
-                id: p2LikeIdCounter++,
-                name: name,
-                reason: reason || '暂无描述'
-            };
-
-            person2LikeData.push(newItem);
-            localStorage.setItem(PERSON2_LIKE_KEY, JSON.stringify(person2LikeData));
+    // playyy喜欢的事物 - 单个删除
+    person2LikeList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('card-delete-btn')) {
+        const id = e.target.dataset.id;
+        if (confirm('确定要删除这条记录吗？')) {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          hobby.destroy().then(() => {
+            person2LikeData = person2LikeData.filter(item => item.id !== id);
             renderPerson2LikeList();
-            document.getElementById('person2LikeName').value = '';
-            document.getElementById('person2LikeReason').value = '';
-            person2LikeForm.style.display = 'none';
-
-            alert('playyy喜欢的事物添加成功！☁️');
-        });
-
-        person2LikeList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('card-delete-btn')) {
-                const id = parseInt(e.target.dataset.id);
-                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
-                    person2LikeData = person2LikeData.filter(item => item.id !== id);
-                    localStorage.setItem(PERSON2_LIKE_KEY, JSON.stringify(person2LikeData));
-                    renderPerson2LikeList();
-                }
-            }
-        });
-
-        batchDeletePerson2LikeBtn.addEventListener('click', () => {
-            const checked = document.querySelectorAll('.person2-like-checkbox:checked');
-            if (checked.length === 0) {
-                alert('请先选中要删除的记录！☁️');
-                return;
-            }
-
-            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
-            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
-                person2LikeData = person2LikeData.filter(item => !deleteIds.includes(item.id));
-                localStorage.setItem(PERSON2_LIKE_KEY, JSON.stringify(person2LikeData));
-                renderPerson2LikeList();
-            }
-        });
-
-        function renderPerson2LikeList() {
-            person2LikeList.innerHTML = '';
-            person2LikeList.appendChild(person2LikeEmptyTip);
-
-            if (person2LikeData.length > 0) {
-                person2LikeEmptyTip.style.display = 'none';
-                const grid = document.createElement('div');
-                grid.className = 'thing-grid';
-                person2LikeList.appendChild(grid);
-
-                person2LikeData.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'like-card thing-card';
-                    card.innerHTML = `
-                        <h3>
-                            ${item.name}
-                            <input type="checkbox" class="person2-like-checkbox" style="margin-left: 10px;" data-id="${item.id}">
-                        </h3>
-                        <button class="card-delete-btn" data-id="${item.id}">×</button>
-                        <p><strong>喜欢的原因：</strong>${item.reason}</p>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else {
-                person2LikeEmptyTip.style.display = 'block';
-            }
+          }).catch(error => {
+            console.error('删除失败：', error);
+            alert('删除失败，请重试～');
+          });
         }
+      }
+    });
 
-        // ========== 第二个人（TA）- 不喜欢的事物 ==========
-        addPerson2DislikeBtn.addEventListener('click', () => {
-            [person1LikeForm, person1DislikeForm, person2LikeForm].forEach(form => form.style.display = 'none');
-            person2DislikeForm.style.display = person2DislikeForm.style.display === 'none' ? 'block' : 'none';
-            if (person2DislikeForm.style.display === 'block') {
-                document.getElementById('person2DislikeName').focus();
-            }
-        });
-
-        submitPerson2DislikeBtn.addEventListener('click', () => {
-            const name = document.getElementById('person2DislikeName').value.trim();
-            const reason = document.getElementById('person2DislikeReason').value.trim();
-
-            if (!name) {
-                alert('事物名称为必填项，请补充完整！❄️');
-                return;
-            }
-
-            const newItem = {
-                id: p2DislikeIdCounter++,
-                name: name,
-                reason: reason || '暂无描述'
-            };
-
-            person2DislikeData.push(newItem);
-            localStorage.setItem(PERSON2_DISLIKE_KEY, JSON.stringify(person2DislikeData));
+    // playyy不喜欢的事物 - 单个删除
+    person2DislikeList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('card-delete-btn')) {
+        const id = e.target.dataset.id;
+        if (confirm('确定要删除这条记录吗？')) {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          hobby.destroy().then(() => {
+            person2DislikeData = person2DislikeData.filter(item => item.id !== id);
             renderPerson2DislikeList();
-            document.getElementById('person2DislikeName').value = '';
-            document.getElementById('person2DislikeReason').value = '';
-            person2DislikeForm.style.display = 'none';
-
-            alert('playyy不喜欢的事物添加成功！❄️');
-        });
-
-        person2DislikeList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('card-delete-btn')) {
-                const id = parseInt(e.target.dataset.id);
-                if (confirm('确定要删除这条记录吗？删除后无法恢复！')) {
-                    person2DislikeData = person2DislikeData.filter(item => item.id !== id);
-                    localStorage.setItem(PERSON2_DISLIKE_KEY, JSON.stringify(person2DislikeData));
-                    renderPerson2DislikeList();
-                }
-            }
-        });
-
-        batchDeletePerson2DislikeBtn.addEventListener('click', () => {
-            const checked = document.querySelectorAll('.person2-dislike-checkbox:checked');
-            if (checked.length === 0) {
-                alert('请先选中要删除的记录！❄️');
-                return;
-            }
-
-            const deleteIds = Array.from(checked).map(cb => parseInt(cb.dataset.id));
-            if (confirm(`确定要删除选中的${deleteIds.length}条记录吗？`)) {
-                person2DislikeData = person2DislikeData.filter(item => !deleteIds.includes(item.id));
-                localStorage.setItem(PERSON2_DISLIKE_KEY, JSON.stringify(person2DislikeData));
-                renderPerson2DislikeList();
-            }
-        });
-
-        function renderPerson2DislikeList() {
-            person2DislikeList.innerHTML = '';
-            person2DislikeList.appendChild(person2DislikeEmptyTip);
-
-            if (person2DislikeData.length > 0) {
-                person2DislikeEmptyTip.style.display = 'none';
-                const grid = document.createElement('div');
-                grid.className = 'thing-grid';
-                person2DislikeList.appendChild(grid);
-
-                person2DislikeData.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'dislike-card thing-card';
-                    card.innerHTML = `
-                        <h3>
-                            ${item.name}
-                            <input type="checkbox" class="person2-dislike-checkbox" style="margin-left: 10px;" data-id="${item.id}">
-                        </h3>
-                        <button class="card-delete-btn" data-id="${item.id}">×</button>
-                        <p><strong>不喜欢的原因：</strong>${item.reason}</p>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else {
-                person2DislikeEmptyTip.style.display = 'block';
-            }
+          }).catch(error => {
+            console.error('删除失败：', error);
+            alert('删除失败，请重试～');
+          });
         }
-    </script>
+      }
+    });
+
+    // ==================== 9. 批量删除逻辑 ====================
+    // eating喜欢的事物 - 批量删除
+    batchDeletePerson1LikeBtn.addEventListener('click', () => {
+      const checkedItems = person1LikeList.querySelectorAll('.card-checkbox:checked');
+      if (checkedItems.length === 0) {
+        alert('请先选择要删除的项～');
+        return;
+      }
+
+      if (confirm(`确定要删除选中的 ${checkedItems.length} 条记录吗？`)) {
+        const deleteIds = [];
+        checkedItems.forEach(checkbox => deleteIds.push(checkbox.dataset.id));
+
+        const deletePromises = deleteIds.map(id => {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          return hobby.destroy();
+        });
+
+        Promise.all(deletePromises).then(() => {
+          person1LikeData = person1LikeData.filter(item => !deleteIds.includes(item.id));
+          renderPerson1LikeList();
+          alert('批量删除成功！');
+        }).catch(error => {
+          console.error('批量删除失败：', error);
+          alert('部分记录删除失败，请重试～');
+        });
+      }
+    });
+
+    // eating不喜欢的事物 - 批量删除
+    batchDeletePerson1DislikeBtn.addEventListener('click', () => {
+      const checkedItems = person1DislikeList.querySelectorAll('.card-checkbox:checked');
+      if (checkedItems.length === 0) {
+        alert('请先选择要删除的项～');
+        return;
+      }
+
+      if (confirm(`确定要删除选中的 ${checkedItems.length} 条记录吗？`)) {
+        const deleteIds = [];
+        checkedItems.forEach(checkbox => deleteIds.push(checkbox.dataset.id));
+
+        const deletePromises = deleteIds.map(id => {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          return hobby.destroy();
+        });
+
+        Promise.all(deletePromises).then(() => {
+          person1DislikeData = person1DislikeData.filter(item => !deleteIds.includes(item.id));
+          renderPerson1DislikeList();
+          alert('批量删除成功！');
+        }).catch(error => {
+          console.error('批量删除失败：', error);
+          alert('部分记录删除失败，请重试～');
+        });
+      }
+    });
+
+    // Tplayyy喜欢的事物 - 批量删除
+    batchDeletePerson2LikeBtn.addEventListener('click', () => {
+      const checkedItems = person2LikeList.querySelectorAll('.card-checkbox:checked');
+      if (checkedItems.length === 0) {
+        alert('请先选择要删除的项～');
+        return;
+      }
+
+      if (confirm(`确定要删除选中的 ${checkedItems.length} 条记录吗？`)) {
+        const deleteIds = [];
+        checkedItems.forEach(checkbox => deleteIds.push(checkbox.dataset.id));
+
+        const deletePromises = deleteIds.map(id => {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          return hobby.destroy();
+        });
+
+        Promise.all(deletePromises).then(() => {
+          person2LikeData = person2LikeData.filter(item => !deleteIds.includes(item.id));
+          renderPerson2LikeList();
+          alert('批量删除成功！');
+        }).catch(error => {
+          console.error('批量删除失败：', error);
+          alert('部分记录删除失败，请重试～');
+        });
+      }
+    });
+
+    // playyy不喜欢的事物 - 批量删除
+    batchDeletePerson2DislikeBtn.addEventListener('click', () => {
+      const checkedItems = person2DislikeList.querySelectorAll('.card-checkbox:checked');
+      if (checkedItems.length === 0) {
+        alert('请先选择要删除的项～');
+        return;
+      }
+
+      if (confirm(`确定要删除选中的 ${checkedItems.length} 条记录吗？`)) {
+        const deleteIds = [];
+        checkedItems.forEach(checkbox => deleteIds.push(checkbox.dataset.id));
+
+        const deletePromises = deleteIds.map(id => {
+          const hobby = AV.Object.createWithoutData('Hobby', id);
+          return hobby.destroy();
+        });
+
+        Promise.all(deletePromises).then(() => {
+          person2DislikeData = person2DislikeData.filter(item => !deleteIds.includes(item.id));
+          renderPerson2DislikeList();
+          alert('批量删除成功！');
+        }).catch(error => {
+          console.error('批量删除失败：', error);
+          alert('部分记录删除失败，请重试～');
+        });
+      }
+    });
+
+
+    // ==================== 10. 页面初始化 ====================
+    initHobbyData();
+  </script>
 </body>
 </html>
