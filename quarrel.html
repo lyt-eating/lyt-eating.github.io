@@ -469,6 +469,8 @@
             margin-bottom: 15px;
         }
     </style>
+    <!-- 引入LeanCloud SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.13.0/dist/av-min.js"></script>
 </head>
 <body>
     <!-- 导航栏 -->
@@ -569,41 +571,119 @@
     </div>
 
     <script>
-        // ========== 核心：本地存储工具函数 ==========
-        // 保存数据到localStorage
+        // ========== 1. 初始化LeanCloud（唯一且正确） ==========
+        AV.init({
+            appId: "kxZrkCIhQd1pIG6msvlJKq1t-gzGzoHsz",
+            appKey: "SeEl1FGOeyZ1prvbwPOWakUU",
+            serverURL: "https://kxzrkcih.lc-cn-n1-shared.com"
+        });
+        // 定义LeanCloud数据表
+        const QuarrelRecord = AV.Object.extend('QuarrelRecord');
+
+        // ========== 2. 本地存储工具函数（兜底） ==========
         function saveToStorage(key, data) {
             localStorage.setItem(key, JSON.stringify(data));
         }
-        // 从localStorage读取数据
         function getFromStorage(key) {
             const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : null;
+            return data ? JSON.parse(data) : [];
         }
 
-        // ========== 1. 恢复Banner背景图 ==========
+        // ========== 3. 云端操作函数（优化错误处理） ==========
+        // 拉取云端记录（失败时静默降级到本地）
+        async function fetchQuarrelRecordsFromCloud() {
+            try {
+                const query = new AV.Query('QuarrelRecord');
+                query.descending('createdAt'); // 最新的在前
+                const results = await query.find();
+                const records = results.map(record => ({
+                    id: record.id,
+                    date: record.get('date'),
+                    level: record.get('level'),
+                    title: record.get('title'),
+                    content: record.get('content'),
+                    solve: record.get('solve')
+                }));
+                // 拉取成功，同步到本地
+                saveToStorage('quarrel_records', records);
+                return records;
+            } catch (error) {
+                // 仅控制台提示，不弹框
+                console.warn('云端拉取失败，使用本地记录：', error.message);
+                return getFromStorage('quarrel_records');
+            }
+        }
+
+        // 保存/编辑云端记录（失败时仅控制台提示）
+        async function saveQuarrelRecordToCloud(record, isEdit = false, cloudId = '') {
+            try {
+                let quarrelRecord;
+                if (isEdit) {
+                    quarrelRecord = AV.Object.createWithoutData('QuarrelRecord', cloudId);
+                } else {
+                    quarrelRecord = new QuarrelRecord();
+                }
+                quarrelRecord.set('date', record.date);
+                quarrelRecord.set('level', record.level);
+                quarrelRecord.set('title', record.title);
+                quarrelRecord.set('content', record.content);
+                quarrelRecord.set('solve', record.solve);
+                const savedRecord = await quarrelRecord.save();
+                return savedRecord.id;
+            } catch (error) {
+                console.warn('云端保存失败：', error.message);
+                return null;
+            }
+        }
+
+        // 删除云端记录（失败时仅控制台提示）
+        async function deleteQuarrelRecordFromCloud(cloudId) {
+            try {
+                const quarrelRecord = AV.Object.createWithoutData('QuarrelRecord', cloudId);
+                await quarrelRecord.destroy();
+                return true;
+            } catch (error) {
+                console.warn('云端删除失败：', error.message);
+                return false;
+            }
+        }
+
+        // 清空云端已解决记录（失败时仅控制台提示）
+        async function clearSolvedRecordsFromCloud() {
+            try {
+                const query = new AV.Query('QuarrelRecord');
+                query.equalTo('solve', 'yes');
+                const results = await query.find();
+                await AV.Object.destroyAll(results);
+                return true;
+            } catch (error) {
+                console.warn('云端清空失败：', error.message);
+                return false;
+            }
+        }
+
+        // ========== 4. Banner/装饰图上传逻辑 ==========
         const banner = document.querySelector('.banner-inner');
-        // 页面加载时恢复Banner背景
+        // 恢复Banner背景
         const savedBannerImg = getFromStorage('quarrel_banner_img');
         if (savedBannerImg) {
             banner.style.backgroundImage = `url("${savedBannerImg}")`;
         }
-        // 上传Banner并保存
+        // 上传Banner
         document.getElementById('bannerImg').addEventListener('change', function(e) {
             if (e.target.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const imgBase64 = event.target.result;
                     banner.style.backgroundImage = `url("${imgBase64}")`;
-                    // 保存到localStorage
                     saveToStorage('quarrel_banner_img', imgBase64);
                 };
                 reader.readAsDataURL(e.target.files[0]);
             }
         });
 
-        // ========== 2. 恢复装饰图 ==========
+        // 恢复装饰图
         let decorStyleTag = null;
-        // 页面加载时恢复装饰图
         const savedDecorImg = getFromStorage('quarrel_decor_img');
         if (savedDecorImg) {
             decorStyleTag = document.createElement('style');
@@ -614,13 +694,12 @@
             `;
             document.head.appendChild(decorStyleTag);
         }
-        // 上传装饰图并保存
+        // 上传装饰图
         document.getElementById('decorImg').addEventListener('change', function(e) {
             if (e.target.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const imgBase64 = event.target.result;
-                    // 复用style标签避免冗余
                     if (decorStyleTag) {
                         decorStyleTag.textContent = `
                             .quarrel-section::before {
@@ -636,14 +715,13 @@
                         `;
                         document.head.appendChild(decorStyleTag);
                     }
-                    // 保存到localStorage
                     saveToStorage('quarrel_decor_img', imgBase64);
                 };
                 reader.readAsDataURL(e.target.files[0]);
             }
         });
 
-        // ========== 3. 吵架记录的持久化 ==========
+        // ========== 5. 吵架记录核心逻辑（云端优先+本地兜底） ==========
         const form = document.querySelector('.quarrel-form');
         const list = document.querySelector('.quarrel-list');
         const addBtn = document.querySelector('.add-record-btn');
@@ -651,14 +729,17 @@
         const clearBtn = document.querySelector('.clear-btn');
         const filterBtn = document.querySelector('.filter-btn');
 
-        // 记录数据结构：[{date, level, title, content, solve}]
-        let quarrelRecords = getFromStorage('quarrel_records') || [];
+        let quarrelRecords = [];
+
+        // 初始化：优先拉取云端
+        async function initQuarrelRecords() {
+            quarrelRecords = await fetchQuarrelRecordsFromCloud();
+            renderRecords();
+        }
 
         // 渲染记录列表
         function renderRecords(records = quarrelRecords) {
-            // 清空列表
             list.innerHTML = '';
-            // 无记录显示空状态
             if (records.length === 0) {
                 list.innerHTML = `
                     <div class="empty-tip">
@@ -668,9 +749,8 @@
                 `;
                 return;
             }
-            // 渲染每条记录
             records.forEach((record, index) => {
-                // 生成标签类名和文字
+                // 生成标签样式
                 let tagClass = '';
                 let tagText = '';
                 switch(record.level) {
@@ -687,7 +767,6 @@
                         tagText = '大吵';
                         break;
                 }
-                // 生成解决状态文字
                 const solveText = record.solve === 'yes' ? '已和好 ✨' : '未和好 😔';
 
                 // 创建卡片
@@ -708,7 +787,7 @@
                 `;
                 list.appendChild(card);
 
-                // 编辑按钮事件
+                // 编辑按钮
                 card.querySelector('.edit-btn').addEventListener('click', function() {
                     const idx = this.dataset.index;
                     const editRecord = quarrelRecords[idx];
@@ -718,44 +797,31 @@
                     document.getElementById('quarrel-title').value = editRecord.title;
                     document.getElementById('quarrel-content').value = editRecord.content;
                     document.getElementById('quarrel-solve').value = editRecord.solve;
-                    // 标记编辑的索引
+                    // 标记编辑信息
                     submitBtn.dataset.editIndex = idx;
+                    submitBtn.dataset.cloudId = editRecord.id;
                     // 显示表单
                     form.style.display = 'block';
                 });
 
-                // 删除按钮事件
-                card.querySelector('.delete-btn').addEventListener('click', function() {
+                // 删除按钮
+                card.querySelector('.delete-btn').addEventListener('click', async function() {
                     if (confirm('确定要删除这条记录吗？')) {
                         const idx = this.dataset.index;
-                        // 删除数组中的记录
+                        const cloudId = quarrelRecords[idx].id;
+                        // 优先删除云端
+                        await deleteQuarrelRecordFromCloud(cloudId);
+                        // 再删除本地
                         quarrelRecords.splice(idx, 1);
-                        // 保存到本地
                         saveToStorage('quarrel_records', quarrelRecords);
-                        // 重新渲染
                         renderRecords();
                     }
                 });
             });
         }
 
-        // 页面加载时渲染记录
-        renderRecords();
-
-        // 新增记录表单显示/隐藏
-        addBtn.addEventListener('click', function() {
-            form.style.display = form.style.display === 'block' ? 'none' : 'block';
-            // 清空编辑标记
-            delete submitBtn.dataset.editIndex;
-            // 自动填充当前日期
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('quarrel-date').value = today;
-            // 重置表单
-            form.reset();
-        });
-
-        // 保存/编辑吵架记录
-        submitBtn.addEventListener('click', function() {
+        // 新增/编辑记录提交
+        submitBtn.addEventListener('click', async function() {
             // 获取表单值
             const date = document.getElementById('quarrel-date').value;
             const level = document.getElementById('quarrel-level').value;
@@ -763,42 +829,53 @@
             const content = document.getElementById('quarrel-content').value;
             const solve = document.getElementById('quarrel-solve').value;
 
-            // 简单验证
+            // 表单验证
             if (!date || !level || !title || !content || !solve) {
                 alert('请填写完整的记录信息哦～');
                 return;
             }
 
             const newRecord = { date, level, title, content, solve };
+            let cloudId = null;
 
-            // 判断是新增还是编辑
+            // 编辑模式
             if (this.dataset.editIndex !== undefined) {
-                // 编辑模式
                 const idx = this.dataset.editIndex;
+                cloudId = this.dataset.cloudId;
+                // 优先保存到云端
+                await saveQuarrelRecordToCloud(newRecord, true, cloudId);
+                // 更新本地（保留云端ID）
+                newRecord.id = cloudId;
                 quarrelRecords[idx] = newRecord;
+                // 清空编辑标记
                 delete this.dataset.editIndex;
+                delete this.dataset.cloudId;
             } else {
                 // 新增模式
+                // 优先保存到云端
+                cloudId = await saveQuarrelRecordToCloud(newRecord);
+                // 本地ID兜底
+                newRecord.id = cloudId || `local_${Date.now()}`;
                 quarrelRecords.push(newRecord);
             }
 
-            // 保存到本地
+            // 同步到本地存储
             saveToStorage('quarrel_records', quarrelRecords);
-            // 重新渲染列表
+            // 重新渲染
             renderRecords();
-            // 重置表单并隐藏
+            // 重置表单
             form.reset();
             form.style.display = 'none';
         });
 
         // 清空已解决记录
-        clearBtn.addEventListener('click', function() {
+        clearBtn.addEventListener('click', async function() {
             if (confirm('确定要清空所有已解决的吵架记录吗？')) {
-                // 过滤掉已和好的记录
+                // 优先清空云端
+                await clearSolvedRecordsFromCloud();
+                // 再过滤本地
                 quarrelRecords = quarrelRecords.filter(record => record.solve !== 'yes');
-                // 保存到本地
                 saveToStorage('quarrel_records', quarrelRecords);
-                // 重新渲染
                 renderRecords();
             }
         });
@@ -834,9 +911,24 @@
                     alert('输入的类型不正确哦～');
                     return;
             }
-            // 渲染筛选后的记录
             renderRecords(filteredRecords);
         });
+
+        // 新增按钮点击事件
+        addBtn.addEventListener('click', function() {
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+            delete submitBtn.dataset.editIndex;
+            delete submitBtn.dataset.cloudId;
+            // 自动填充今日日期
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('quarrel-date').value = today;
+            form.reset();
+        });
+
+        // 页面加载初始化
+        window.onload = async function() {
+            await initQuarrelRecords();
+        };
     </script>
 </body>
 </html>
